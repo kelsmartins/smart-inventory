@@ -1,24 +1,21 @@
 import type { Config } from "tailwindcss";
-import scrollbarHide from 'tailwind-scrollbar-hide';
 
 const config: Config = {
+  // Ajustado para olhar dentro de src/ (onde estão seus códigos)
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        primary: "#6b9dff",
-        secondary: "#222222",
-        background: "#262626",
-        third: "#323232",
-        fourth: "#424242",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        primary: "#6b9dff", // Cor principal do Smart Inventory
       },
     },
   },
-  plugins: [scrollbarHide],
+  plugins: [],
 };
-
 export default config;

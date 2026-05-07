@@ -81,7 +81,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {/* Botão de envio */}jj
+          {/* Botão de envio */}
           <button
             type="submit"
             disabled={isLoading}

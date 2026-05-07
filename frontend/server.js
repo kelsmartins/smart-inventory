@@ -1,45 +1,91 @@
-// frontend/src/app/api/products/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+// frontend/server.js
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
 
-// Caminho para o products.json (na raiz do frontend)
-const productsPath = path.join(process.cwd(), 'products.json');
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// Função auxiliar para ler o JSON
-function readProductsFile() {
+const PORT = process.env.PORT || 3333;
+
+// Os arquivos JSON estão na RAIZ do repositório (um nível acima de frontend/)
+const productsPath = path.join(__dirname, '..', 'products.json');
+const usersPath = path.join(__dirname, '..', 'users.json');
+
+// Funções auxiliares para ler e escrever
+function readProducts() {
   const data = fs.readFileSync(productsPath, 'utf8');
   return JSON.parse(data);
 }
 
-// Função auxiliar para salvar o JSON
-function writeProductsFile(data: any) {
+function writeProducts(data) {
   fs.writeFileSync(productsPath, JSON.stringify(data, null, 2));
 }
 
-// GET /api/products - Retorna todos os produtos
-export async function GET() {
-  try {
-    const { products } = readProductsFile();
-    return NextResponse.json(products);
-  } catch (error) {
-    return NextResponse.json({ error: 'Erro ao ler produtos' }, { status: 500 });
-  }
+function readUsers() {
+  const data = fs.readFileSync(usersPath, 'utf8');
+  return JSON.parse(data);
 }
 
-// POST /api/products - Adiciona um novo produto
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const data = readProductsFile();
-    const newProduct = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...body,
-    };
-    data.products.push(newProduct);
-    writeProductsFile(data);
-    return NextResponse.json(newProduct, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Erro ao adicionar produto' }, { status: 500 });
-  }
+function writeUsers(data) {
+  fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
 }
+
+// ========== ROTAS DE USUÁRIOS ==========
+app.get('/users', (req, res) => {
+  const { email, password } = req.query;
+  let { users } = readUsers();
+  if (email) users = users.filter(u => u.email === email);
+  if (password) users = users.filter(u => u.password === password);
+  res.json(users);
+});
+
+app.post('/users', (req, res) => {
+  const data = readUsers();
+  const newUser = {
+    id: Math.random().toString(36).substr(2, 9),
+    ...req.body,
+  };
+  data.users.push(newUser);
+  writeUsers(data);
+  res.status(201).json(newUser);
+});
+
+app.delete('/users/:id', (req, res) => {
+  const data = readUsers();
+  data.users = data.users.filter(u => u.id !== req.params.id);
+  writeUsers(data);
+  res.status(204).send();
+});
+
+// ========== ROTAS DE PRODUTOS ==========
+app.get('/products', (req, res) => {
+  const { products } = readProducts();
+  res.json(products);
+});
+
+app.post('/products', (req, res) => {
+  const data = readProducts();
+  const newProduct = {
+    id: Math.random().toString(36).substr(2, 9),
+    ...req.body,
+  };
+  data.products.push(newProduct);
+  writeProducts(data);
+  res.status(201).json(newProduct);
+});
+
+app.delete('/products/:id', (req, res) => {
+  const data = readProducts();
+  data.products = data.products.filter(p => p.id !== req.params.id);
+  writeProducts(data);
+  res.status(204).send();
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ API Smart Inventory rodando na porta ${PORT}`);
+  console.log(`📦 Produtos: ${productsPath}`);
+  console.log(`👥 Usuários: ${usersPath}`);
+});

@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start-api": "node server.js",
     "lint": "eslint",
     "server": "json-server db.json -p 3333"
   },
   "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
     "@zxing/library": "^0.21.3",
     "axios": "^1.14.0",
     "date-fns": "^4.1.0",

@@ -5,6 +5,7 @@ const path = require('path');
 const app = express();
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 app.use(cors());
 app.use(express.json());
 
@@ -166,6 +167,8 @@ app.use(express.json()); // Habilita o recebimento de JSON no corpo das requisi�
 // Ele tentará ler a porta do sistema; se não houver, usa a 3333 (para seu teste local).
 =======
 >>>>>>> parent of 14b757b (resolve build errors, refactor auth context and implement FEFO logic)
+=======
+>>>>>>> parent of 14b757b (resolve build errors, refactor auth context and implement FEFO logic)
 const PORT = process.env.PORT || 3333;
 
 const productsPath = path.join(__dirname, 'products.json');
@@ -192,6 +195,7 @@ app.get('/', (req, res) => {
   `);
 });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 app.post('/users', (req, res) => {
   const data = readData(usersPath);
@@ -265,6 +269,22 @@ app.listen(PORT, () => {
 // ✅ ALTERADO: Agora usa a variável PORT dinâmica
 app.listen(PORT, () => console.log(`✅ API Smart Inventory rodando na porta ${PORT}`));
 >>>>>>> parent of eb91c8e (add internal API routes and next.config.js for Render deployment)
+=======
+// Rota de Produtos
+app.get('/products', (req, res) => {
+  res.json(products);
+});
+
+// Rota de Usuários
+app.get('/users', (req, res) => {
+  res.json(users);
+});
+
+app.listen(PORT, () => {
+  console.log(`✅ API rodando na porta ${PORT}`);
+  console.log(`📦 Endpoints: /products , /users`);
+});
+>>>>>>> parent of 14b757b (resolve build errors, refactor auth context and implement FEFO logic)
 =======
 // Rota de Produtos
 app.get('/products', (req, res) => {

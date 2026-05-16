@@ -171,17 +171,20 @@ app.use(express.json()); // Habilita o recebimento de JSON no corpo das requisi�
 >>>>>>> parent of 14b757b (resolve build errors, refactor auth context and implement FEFO logic)
 const PORT = process.env.PORT || 3333;
 
+// Caminhos dos seus arquivos
 const productsPath = path.join(__dirname, 'products.json');
 const usersPath = path.join(__dirname, 'users.json');
 
+// Lê os dados uma vez (para não ler a cada requisição – mas pode ser melhorado depois)
 const products = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
 const users = JSON.parse(fs.readFileSync(usersPath, 'utf8'));
 
-// Rota raiz (mensagem informativa)
+// Endpoints
 app.get('/', (req, res) => {
   res.send('API Smart Inventory - endpoints disponíveis: /users, /products');
 });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -292,6 +295,8 @@ app.get('/users', (req, res) => {
   res.json(users);
 });
 
+=======
+>>>>>>> parent of f9181ad (up)
 app.listen(PORT, () => {
   console.log(`✅ API rodando na porta ${PORT}`);
 <<<<<<< HEAD

@@ -6,8 +6,6 @@ import { useAuthContext } from "@/hooks/useAuthContext"
 export default function Profile() {
     const { user, logout } = useAuthContext();
     const [isEditing, setIsEditing] = useState(false);
-    
-    // Novo estado para controlar a exibição do formulário de senha
     const [isPasswordOpen, setIsPasswordOpen] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -16,7 +14,6 @@ export default function Profile() {
         document: user?.document || ''
     });
 
-    // Novo estado para os dados da senha
     const [passwordData, setPasswordData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -39,7 +36,6 @@ export default function Profile() {
     };
 
     const handleSavePassword = () => {
-       
         console.log("Senha alterada:", passwordData);
         setIsPasswordOpen(false);
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -60,85 +56,85 @@ export default function Profile() {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Seção 1: Dados Pessoais */}
-                    <div className="flex flex-col p-5 sm:p-8 bg-white rounded-xl shadow-sm border border-slate-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="font-bold text-slate-800 text-xl">Dados Pessoais</h3>
-                            {!isEditing ? (
+                {/* Bloco Único que engloba Dados Pessoais e Senha (Agora com largura máxima total) */}
+                <div className="w-full flex flex-col p-5 sm:p-8 bg-white rounded-xl shadow-sm border border-slate-200">
+                    
+                    {/* Subcabeçalho: Dados Pessoais */}
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-slate-800 text-xl">Dados Pessoais</h3>
+                        {!isEditing ? (
+                            <button 
+                                onClick={() => setIsEditing(true)}
+                                className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+                            >
+                                Editar
+                            </button>
+                        ) : (
+                            <div className="flex gap-3">
                                 <button 
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={() => setIsEditing(false)}
                                     className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                                 >
-                                    Editar
+                                    Cancelar
                                 </button>
-                            ) : (
-                                <div className="flex gap-3">
+                                <button 
+                                    onClick={handleSave}
+                                    className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm shadow-blue-600/30"
+                                >
+                                    Salvar
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Inputs de Dados Pessoais */}
+                    <div className="space-y-5">
+                        <InputField label="Nome" name="name" value={formData.name} isEditing={isEditing} onChange={handleInputChange} />
+                        <InputField label="E-mail" name="email" value={formData.email} isEditing={isEditing} onChange={handleInputChange} type="email" />
+                        <InputField label="Documento" name="document" value={formData.document} isEditing={isEditing} onChange={handleInputChange} />
+                    </div>
+                    
+                    {/* Linha Divisória de Seção interna */}
+                    <div className="mt-8 pt-6 border-t border-slate-100">
+                        {!isPasswordOpen ? (
+                            <button 
+                                onClick={() => setIsPasswordOpen(true)}
+                                className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                            >
+                                Alterar Senha de Acesso
+                            </button>
+                        ) : (
+                            <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                                <h4 className="font-bold text-slate-800 text-lg mb-2">Mudar Senha</h4>
+                                
+                                <InputField label="Senha Atual" name="currentPassword" type="password" value={passwordData.currentPassword} isEditing={true} onChange={handlePasswordChange} />
+                                <InputField label="Nova Senha" name="newPassword" type="password" value={passwordData.newPassword} isEditing={true} onChange={handlePasswordChange} />
+                                <InputField label="Confirmar Nova" name="confirmPassword" type="password" value={passwordData.confirmPassword} isEditing={true} onChange={handlePasswordChange} />
+                                
+                                <div className="flex justify-end gap-3 mt-4">
                                     <button 
-                                        onClick={() => setIsEditing(false)}
+                                        onClick={() => setIsPasswordOpen(false)}
                                         className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                                     >
                                         Cancelar
                                     </button>
                                     <button 
-                                        onClick={handleSave}
+                                        onClick={handleSavePassword}
                                         className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm shadow-blue-600/30"
                                     >
-                                        Salvar
+                                        Atualizar Senha
                                     </button>
                                 </div>
-                            )}
-                        </div>
-
-                        <div className="space-y-5">
-                            <InputField label="Nome" name="name" value={formData.name} isEditing={isEditing} onChange={handleInputChange} />
-                            <InputField label="E-mail" name="email" value={formData.email} isEditing={isEditing} onChange={handleInputChange} type="email" />
-                            <InputField label="Documento" name="document" value={formData.document} isEditing={isEditing} onChange={handleInputChange} />
-                        </div>
-                        
-                        {/* Seção de Alterar Senha Expansível */}
-                        <div className="mt-8 pt-6 border-t border-slate-100">
-                            {!isPasswordOpen ? (
-                                <button 
-                                    onClick={() => setIsPasswordOpen(true)}
-                                    className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-                                >
-                                    Alterar Senha de Acesso
-                                </button>
-                            ) : (
-                                <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
-                                    <h4 className="font-semibold text-slate-700 text-sm mb-1">Mudar Senha</h4>
-                                    
-                                    <InputField label="Senha Atual" name="currentPassword" type="password" value={passwordData.currentPassword} isEditing={true} onChange={handlePasswordChange} />
-                                    <InputField label="Nova Senha" name="newPassword" type="password" value={passwordData.newPassword} isEditing={true} onChange={handlePasswordChange} />
-                                    <InputField label="Confirmar Nova" name="confirmPassword" type="password" value={passwordData.confirmPassword} isEditing={true} onChange={handlePasswordChange} />
-                                    
-                                    <div className="flex justify-end gap-3 mt-4">
-                                        <button 
-                                            onClick={() => setIsPasswordOpen(false)}
-                                            className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button 
-                                            onClick={handleSavePassword}
-                                            className="text-sm bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-                                        >
-                                            Atualizar Senha
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
+                            </div>
+                        )}
                     </div>
-                </div>
+
+                </div> {/* Fim do Bloco Único */}
             </div>
         </div>
     )
 }
 
-// O Subcomponente InputField continua exatamente o mesmo
 interface InputFieldProps {
     label: string;
     name: string;
@@ -170,4 +166,3 @@ function InputField({ label, name, value, isEditing, onChange, type = "text" }: 
         </div>
     );
 }
-

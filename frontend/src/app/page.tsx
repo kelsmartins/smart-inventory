@@ -8,7 +8,7 @@
 // ==================================================
 
 import { useRouter } from 'next/navigation';
-import { Package, AlertTriangle, XCircle, DollarSign, LogOut, Check } from 'lucide-react';
+import { Package, AlertTriangle, XCircle, DollarSign, LogOut, Check, Percent, ClockAlert } from 'lucide-react';
 import Link from 'next/link';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useProductsContext } from '@/hooks/useProductsContext';
@@ -21,32 +21,32 @@ const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 
 export default function DashboardPage() {
 
-  const {user} = useAuthContext();
+  const { user } = useAuthContext();
   const { products, getProducts, isLoading, expiredProducts, nearExpiryProducts, validProducts, financialRisk } = useProductsContext();
   const router = useRouter();
   const riskyProducts = [...expiredProducts, ...nearExpiryProducts];
 
 
-  useEffect(() => {
-    getProducts();
-  }, []);
+  // useEffect(() => {
+  //   getProducts();
+  // }, []);
 
-  // Função auxiliar para obter nome do produto pelo ID
-  const getProductName = (productId: string) =>
-    products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
+  // // Função auxiliar para obter nome do produto pelo ID
+  // const getProductName = (productId: string) =>
+  //   products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
 
   const handleLogout = () => {
     // Implementar logout (limpar token, redirecionar)
     router.push('/login');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-slate-800 bg-slate-50">
-        <p className="animate-pulse text-lg font-medium">Carregando dashboard...</p>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex min-h-screen items-center justify-center text-slate-800 bg-slate-50">
+  //       <p className="animate-pulse text-lg font-medium">Carregando dashboard...</p>
+  //     </div>
+  //   );
+  // }
 
   const pieData = [
     { name: 'Válidos', value: validProducts.length },
@@ -57,7 +57,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen p-4 md:p-8 font-sans text-slate-800 bg-slate-50">
       <div className="mx-auto max-w-6xl space-y-8">
-        
+
         {/* Cabeçalho */}
         <header className="flex flex-col items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center">
           <div>
@@ -68,17 +68,39 @@ export default function DashboardPage() {
           </div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center gap-2 rounded-lg bg-red-50 border border-red-100 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100"
+            className="inline-flex items-center gap-2 rounded-lg bg-red-50 border border-red-100 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 active:scale-95"
           >
             <LogOut size={16} />
             Sair
           </button>
         </header>
 
+        {/* Banner de Atenção (Atualizado para harmonizar com a paleta) */}
+        <div className="rounded-xl border border-blue-500 bg-white p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5 shadow-sm">
+              <ClockAlert size={22} className="text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Atenção com a validade!</h3>
+              <p className="text-sm text-slate-500 mt-0.5 font-medium">
+                Estes produtos estão prestes a vencer. Escolha o que fazer para evitar perdas no estoque.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => { }}
+            className="whitespace-nowrap inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:scale-95 w-full sm:w-auto"
+          >
+            <Percent size={16} />
+            Aplicar Promoções
+          </button>
+        </div>
+
         {/* Gráfico em pizza e Cards */}
-        {/* Usamos lg:h-[450px] no container pai para ditar a altura exata de ambos os lados */}
         <div className='flex flex-col lg:flex-row gap-6 mb-8 lg:h-[450px]'>
-          
+
           {/* Lado do Gráfico */}
           {products.length > 0 && (
             <div className="w-full lg:w-[600px] h-[450px] lg:h-full">
@@ -111,11 +133,10 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          )}
-
+          )} 
           {/* Lado dos Cards de resumo */}
           <div className="w-full lg:flex-1 flex flex-col gap-4 h-full">
-            
+
             {/* Card: Produtos Válidos */}
             <div className="flex-1 flex items-center rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md">
               <div className="mr-5 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-600">
@@ -188,14 +209,14 @@ export default function DashboardPage() {
       <div className="rounded-xl border border-slate-200 shadow-sm overflow-hidden bg-white max-w-6xl mx-auto">
         <div className="border-b border-slate-100 px-6 py-5 flex justify-between flex-row items-center bg-white">
           <h2 className="text-lg font-bold text-slate-800">Produtos para se atentar</h2>
-          <Link href="/inventory" className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+          <Link href="/inventory" className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors active:scale-95">
             Ver estoque
           </Link>
         </div>
 
         <div className="overflow-auto max-h-[500px] hide-scrollbar">
           <table className="w-full text-left text-sm">
-            
+
             <thead className="border-b border-slate-200 sticky top-0 bg-slate-50 z-10">
               <tr>
                 <th className="whitespace-nowrap px-6 py-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Produto</th>
@@ -218,7 +239,7 @@ export default function DashboardPage() {
                   .map((product) => (
                     <tr key={product.id} className="transition-colors duration-150 hover:bg-slate-50 group">
                       <td className="whitespace-nowrap px-6 py-4 font-medium text-slate-800">
-                        {product.name || getProductName(product.id)}
+                        {product.name}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-slate-600">
                         {product.expiryDate ? new Date(product.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}

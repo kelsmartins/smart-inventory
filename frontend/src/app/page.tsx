@@ -12,9 +12,11 @@ import { Package, AlertTriangle, XCircle, DollarSign, LogOut, Check, Percent, Cl
 import Link from 'next/link';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useProductsContext } from '@/hooks/useProductsContext';
-import { use, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAuthContext } from '@/hooks/useAuthContext';
+import { ExpiringProductsReview } from '@/components/Expiring Products/ExpiringProductsReview';
+import { ProductType } from '@/types/ProductType';
 
 // Cores atualizadas para combinar com a paleta moderna do Tailwind (green-500, amber-500, red-500)
 const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
@@ -76,27 +78,8 @@ export default function DashboardPage() {
         </header>
 
         {/* Banner de Atenção (Atualizado para harmonizar com a paleta) */}
-        <div className="rounded-xl border border-blue-500 bg-white p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
-          <div className="flex items-start gap-3.5">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5 shadow-sm">
-              <ClockAlert size={22} className="text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-800">Atenção com a validade!</h3>
-              <p className="text-sm text-slate-500 mt-0.5 font-medium">
-                Estes produtos estão prestes a vencer. Escolha o que fazer para evitar perdas no estoque.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => { }}
-            className="whitespace-nowrap inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:scale-95 w-full sm:w-auto"
-          >
-            <Percent size={16} />
-            Aplicar Promoções
-          </button>
-        </div>
+        <ExpiryAlertBanner  ExpiringProductsData={[]}/>
+        
 
         {/* Gráfico em pizza e Cards */}
         <div className='flex flex-col lg:flex-row gap-6 mb-8 lg:h-[450px]'>
@@ -217,7 +200,7 @@ export default function DashboardPage() {
         <div className="overflow-auto max-h-[500px] hide-scrollbar">
           <table className="w-full text-left text-sm">
 
-            <thead className="border-b border-slate-200 sticky top-0 bg-slate-50 z-10">
+            <thead className="border-b border-slate-200 sticky top-0 bg-slate-50 z-0">
               <tr>
                 <th className="whitespace-nowrap px-6 py-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Produto</th>
                 <th className="whitespace-nowrap px-6 py-4 font-semibold text-slate-500 text-xs uppercase tracking-wider">Validade</th>
@@ -260,4 +243,43 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+
+type ExpiryAlertBannerProps = {
+  ExpiringProductsData: ProductType[];
+}
+export function ExpiryAlertBanner({ExpiringProductsData}: ExpiryAlertBannerProps){
+
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-blue-500 bg-white p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+          
+          <div className="flex items-start gap-3.5">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5 shadow-sm">
+              <ClockAlert size={22} className="text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Atenção com a validade!</h3>
+              <p className="text-sm text-slate-500 mt-0.5 font-medium">
+                Estes produtos estão prestes a vencer. Escolha o que fazer para evitar perdas no estoque.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="whitespace-nowrap inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:scale-95 w-full sm:w-auto"
+          >
+            <Percent size={16} />
+            Aplicar Promoções
+          </button>
+
+          {showModal && 
+            <ExpiringProductsReview onClose={()=>setShowModal(false)} ExpiringProductsData={ExpiringProductsData}/>
+          }
+
+        </div>
+  )
 }

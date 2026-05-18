@@ -3,7 +3,7 @@
 import { Package, Trash, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // Importado para fazer o redirecionamento seguro
-import { PaymentComponent } from "@/components/paymentcomponent";
+import { PaymentMethods } from "@/components/PaymentMethods";
 import { ProductType } from "@/types/ProductType";
 import { useProductsContext } from "@/hooks/useProductsContext";
 
@@ -137,7 +137,7 @@ export default function NewSale() {
                             Finalizar Compra
                         </button>
                         {paymentOpen && (
-                            <PaymentComponent openPayment={openPayment} />
+                            <PaymentMethods openPayment={openPayment} />
                         )}
                     </div>
                 </div>

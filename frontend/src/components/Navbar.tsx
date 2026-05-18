@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/hooks/useAuthContext';
 
 const links = [
-  { to: '/', label: 'Início', icon: Home },
+  { to: '/', label: 'Dashboard', icon: Home },
   { to: '/profile', label: 'Perfil', icon: User },
   { to: '/inventory', label: 'Estoque', icon: Package }, //PlusCircle },
   { to: '/new-sale', label: 'Vender', icon: HandCoins },
@@ -30,24 +30,24 @@ export function Navbar() {
     }
   }, [pathname]);
 
-  useEffect(() => {
+//   useEffect(() => {
 
-  if (pathname === '/' && !user) {
-    router.push('/welcome');
-    return
-  }
-  const protectedRoutes = ['/inventory', '/profile', '/new-sale'];
-  const isProtectedRoute = protectedRoutes.some(route => pathname.includes(route));
+//   if (pathname === '/' && !user) {
+//     router.push('/welcome');
+//     return
+//   }
+//   const protectedRoutes = ['/inventory', '/profile', '/new-sale'];
+//   const isProtectedRoute = protectedRoutes.some(route => pathname.includes(route));
 
-  if (isProtectedRoute && !user) {
-    router.push('/login');
-    return;
-  }
+//   if (isProtectedRoute && !user) {
+//     router.push('/login');
+//     return;
+//   }
 
-  if (user && (pathname === '/welcome' || pathname === '/login')) {
-    router.push('/');
-  }
-}, [pathname, user, router]);
+//   if (user && (pathname === '/welcome' || pathname === '/login')) {
+//     router.push('/');
+//   }
+// }, [pathname, user, router]);
 
 
 

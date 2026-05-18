@@ -31,7 +31,13 @@ export default function CollaboratorsPage(){
                     <PlusCircle className="w-5 h-5" />
                     <span className="text-sm">Novo</span>
                 </button>
-                {isCollaboratorFormOpen && <UserForm isAdmin={false} isInInventoryPage={true} ShowCollaboratorForm={ShowCollaboratorForm}/>}
+                {isCollaboratorFormOpen && 
+                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={ShowCollaboratorForm}>
+                    <div className="w-[500px] h-[550px] flex flex-col md:flex-row bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden p-4" onClick={e => e.stopPropagation()}>
+                    <UserForm isAdmin={false} isInInventoryPage={true} ShowCollaboratorForm={ShowCollaboratorForm}/>
+                    </div>
+                </div>
+                }
             </div>
 
             {/* Cabeçalho da Lista */}

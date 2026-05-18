@@ -1,6 +1,6 @@
 'use client'
 
-import { ProductForm } from "@/components/productform";
+import { ProductForm } from "@/components/Forms/productform";
 import { useProductsContext } from "@/hooks/useProductsContext";
 import { PlusCircle, Trash, Edit } from "lucide-react"
 import { useEffect, useState } from "react";

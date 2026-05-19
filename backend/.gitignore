@@ -1,0 +1,13 @@
+# Ambiente virtual
+venv/
+__pycache__/
+*.pyc
+
+# Arquivos de configuração local
+.env
+
+# Pastas de migração e cache
+migrations/
+instance/
+.pytest_cache/
+.DS_Store

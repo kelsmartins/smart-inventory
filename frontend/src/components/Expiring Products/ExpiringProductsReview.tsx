@@ -1,6 +1,5 @@
 import { ProductType } from '@/types/ProductType';
 import { X } from 'lucide-react'
-import { ExpiringProductsItem } from './ExpiringProductsItem';
 import { ExpiringProductsList } from './ExpiringProductsList';
 
 type ExpiringProductsReviewProps = {

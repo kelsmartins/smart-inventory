@@ -5,6 +5,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Package, User, Home, HandCoins } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/hooks/useAuthContext';
+import Image from 'next/image';
+import { Titan_One } from 'next/font/google';
+
+const titan = Titan_One({
+  subsets: ['latin'],
+  weight: ['400'],
+});
 
 const links = [
   { to: '/', label: 'Dashboard', icon: Home },
@@ -63,10 +70,13 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50  bg-[#222222] h-[60px] text-white">
       <div className="w-full flex h-16 items-center justify-between px-2 sm:px-4">
-        {/* Alteração na linha abaixo: text-base md:text-xl e tamanhos do ícone */}
-        <Link href="/" className="flex items-center gap-1.5 sm:gap-2 text-base md:text-xl font-bold text-[#6b9dff]">
-          <Package className="h-5 w-5 md:h-6 md:w-6 shrink-0" />
-          <span className="truncate">Smart Inventory</span>
+
+        <Link href="/" className="flex items-center gap-1 sm:gap-2 text-base md:text-xl font-bold text-[#6b9dff]">
+          <Image src="/smart_inventory_logo.png" alt='logo' width={50} height={50} />
+          <div className={`${titan.className} text-blue-500 text-base flex flex-col items-start justify-center`}>
+               <span>Smart</span>
+               <span>Inventory</span>
+          </div>
         </Link>
         
         <div className="flex items-center gap-1">
@@ -80,7 +90,7 @@ export function Navbar() {
                   : 'text-white hover:border-b-2 border-[#6b9dff]'
                 }
               ${to === '/new-sale' ?
-                  'bg-[#6b9dff] hover:bg-[#6b9dff]/70' : ''}
+                  'bg-blue-500 hover:bg-[#6b9dff]/70' : ''}
                  ${to === '/new-sale' // seleciona componente que vai para new sale e verifica se o componente atual é o de inventory 
                   ? pathname.includes('/inventory')
                     ? 'bg-[#222222] text-white hover:bg-[#6b9dff]/70'

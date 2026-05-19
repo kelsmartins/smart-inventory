@@ -72,8 +72,8 @@ export function Navbar() {
       <div className="w-full flex h-16 items-center justify-between px-2 sm:px-4">
 
         <Link href="/" className="flex items-center gap-1 sm:gap-2 text-base md:text-xl font-bold text-[#6b9dff]">
-          <Image src="/smart_inventory_logo.png" alt='logo' width={50} height={50} />
-          <div className={`${titan.className} text-blue-500 text-base flex flex-col items-start justify-center`}>
+          <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
+          <div className={`${titan.className} text-blue-500 text-base flex flex-col items-start justify-center h-full`}>
                <span>Smart</span>
                <span>Inventory</span>
           </div>

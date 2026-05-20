@@ -7,4 +7,5 @@ export type ProductType = {
   price: number;
   status: 'valid' | 'alert' | 'critical' | 'expired';
   quantity: number;
+  batch?: string
 }

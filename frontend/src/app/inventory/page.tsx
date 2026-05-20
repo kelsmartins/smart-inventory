@@ -1,6 +1,6 @@
 'use client'
 
-import { ProductForm } from "@/components/Forms/productform";
+import { ProductForm } from "@/components/Forms/Product Form/productform";
 import { useProductsContext } from "@/hooks/useProductsContext";
 import { PlusCircle, Trash, Edit } from "lucide-react"
 import { useEffect, useState } from "react";
@@ -18,13 +18,13 @@ export default function InventoryPage(){
         setIsProductFormOpen(!isProductFormOpen);
     }
 
-    if (isLoading) {
-        return (
-            <div className="flex-1 flex min-h-screen items-center justify-center bg-slate-50 font-sans">
-                <p className="animate-pulse text-lg font-semibold text-slate-500">Carregando estoque...</p>
-            </div>
-        );
-    }
+    // if (isLoading) {
+    //     return (
+    //         <div className="flex-1 flex min-h-screen items-center justify-center bg-slate-50 font-sans">
+    //             <p className="animate-pulse text-lg font-semibold text-slate-500">Carregando estoque...</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="flex-1 flex flex-col bg-slate-50 h-full p-4 sm:p-8 font-sans w-full">

@@ -6,9 +6,9 @@ import { Package, User, Home, HandCoins } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/hooks/useAuthContext';
 import Image from 'next/image';
-import { Titan_One } from 'next/font/google';
+import { Rammetto_One } from 'next/font/google';
 
-const titan = Titan_One({
+const right = Rammetto_One({
   subsets: ['latin'],
   weight: ['400'],
 });
@@ -73,8 +73,8 @@ export function Navbar() {
 
         <Link href="/" className="flex items-center gap-1 sm:gap-2 text-base md:text-xl font-bold text-[#6b9dff]">
           <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
-          <div className={`${titan.className} text-blue-500 text-base flex flex-col items-start justify-center h-full`}>
-               <span>Smart</span>
+          <div className={`${right.className} text-blue-500 text-base leading-none flex flex-col items-start justify-start h-full`}>
+               <span className='text-blue-400'>Smart</span>
                <span>Inventory</span>
           </div>
         </Link>

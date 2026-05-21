@@ -1,14 +1,18 @@
+import { useProductsContext } from "@/hooks/useProductsContext";
+import { ProductType } from "@/types/ProductType";
 import { Scan, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useZxing } from "react-zxing";
-import { toast } from "sonner";
+
 
 type Props = {
   setOpenScanner: () => void;
-  fillFormWithBarcodeData: (barcode: string, productName: string) => void;
+  fillFormWithBarcodeData: (productToFill: ProductType) => void;
 };
 
 export const BarcodeScanner = ({ setOpenScanner, fillFormWithBarcodeData }: Props) => {
+
+  const { getProductToFillForm } = useProductsContext();
   const [result, setResult] = useState("");
   const { ref } = useZxing({
     onDecodeResult(result) {
@@ -20,18 +24,30 @@ export const BarcodeScanner = ({ setOpenScanner, fillFormWithBarcodeData }: Prop
     if (!result) return;
 
     async function request() {
-      try {
-        const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${result}.json`);
-        const data = await response.json();
-        if (data.product && data.product.product_name) {
-          fillFormWithBarcodeData(data.code, data.product.product_name);
-          setOpenScanner();
-        } else {
-          toast.warning("Produto não encontrado. Preencha manualmente.");
+
+      const response = await getProductToFillForm(result);
+
+      if (response) {
+
+        const productToFill: ProductType = {
+          id: '',
+          name: response.description,
+          barcode: String(response.gtin),
+          category: response.category?.description || '',
+          expiryDate: '',
+          price: Number(response.avg_price) || 0,
+          status: "valid",
+          quantity: 1,
+          batch: ''
         }
-      } catch (error) {
-        console.error("Erro ao buscar dados do produto:", error);
-        toast.error("Erro ao buscar dados do produto. Verifique o código de barras.");
+
+        fillFormWithBarcodeData(productToFill)
+
+        setOpenScanner();
+        setResult('');
+
+      } else {
+
       }
     }
     request();
@@ -39,28 +55,28 @@ export const BarcodeScanner = ({ setOpenScanner, fillFormWithBarcodeData }: Prop
 
   return (
     <div className="w-full h-full flex items-center justify-center p-2 sm:p-4 select-none text-slate-800 bg-transparent fixed inset-0 z-[60] animate-fade-in" onClick={setOpenScanner}>
-      
+
       <div className="bg-white border border-slate-200 rounded-xl shadow-2xl relative overflow-hidden w-full max-w-md h-[570px] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        
+
         <div className="flex items-start justify-between gap-3 p-4 border-b border-slate-100 shrink-0 bg-white">
-            <div>
-                <h2 className="text-lg font-bold text-slate-800">Ler Código de Barras</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Aponte a câmera para buscar automaticamente.</p>
-            </div>
-            <button 
-                onClick={setOpenScanner}
-                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                aria-label="Fechar Scanner">
-                <X size={18} />
-            </button>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">Ler Código de Barras</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Aponte a câmera para buscar automaticamente.</p>
+          </div>
+          <button
+            onClick={setOpenScanner}
+            className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Fechar Scanner">
+            <X size={18} />
+          </button>
         </div>
-        
+
         <div className="flex flex-col items-center p-4 flex-1 h-full justify-between">
-          
+
           <div className="w-full flex-1 relative overflow-hidden rounded-xl border-2 border-slate-100 shadow-sm bg-black">
             <video ref={ref} className="absolute inset-0 w-full h-full object-cover" />
           </div>
-          
+
           <div className="mt-4 flex items-center justify-center w-full min-h-[40px] shrink-0">
             {result ? (
               <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-full shadow-sm animate-fade-in">

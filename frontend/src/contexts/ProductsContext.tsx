@@ -2,6 +2,7 @@
 import { createContext, useState, useMemo } from "react";
 import { ProductType } from "../types/ProductType";
 import { axios_api } from "@/api/axios_api";
+import axios from "axios";
 
 import { DashBoardService } from '@/services/dashboard-service'
 import { toast } from "sonner";
@@ -27,7 +28,18 @@ type ProductsContextType = {
     financialRisk: number;
     findProductByName: (name: string) => Promise<ProductType[]>;
     deleteProduct: (id: string) => Promise<void>;
+    getProductToFillForm: (barCode: string) => Promise<BlueSoftResponse>;
 };
+
+export interface BlueSoftResponse {
+    description: string;
+    category?: {
+        description: string;
+    };
+    avg_price: string;
+    gtin: string;
+    thumbnail?: string;
+}
 
 export const ProductsContext = createContext({} as ProductsContextType);
 
@@ -44,7 +56,7 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
     } = useMemo(() => DashBoardService(products), [products]);
 
 
-//   funcoes api
+    //   funcoes api
     async function addProduct(newProduct: Omit<ProductType, 'status'>) {
         const response = await axios_api.post('/products', newProduct);
         setProducts([...products, response.data]);
@@ -57,22 +69,29 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         setIsLoading(false);
     }
 
-    async function findProductByName(name: string){
+    async function findProductByName(name: string) {
         const response = await axios_api.get(`/products?name=${name}`)
         return response.data;
     }
 
-   async function deleteProduct(id: string) {
-    try {
-        await axios_api.delete(`/products/${id}`);
-        setProducts(currentProducts => 
-            currentProducts.filter(product => product.id !== id)
-        );
-        toast.success('Produto excluído');
-    } catch (error) {
-        console.error("Erro ao deletar produto:", error);
+    async function deleteProduct(id: string) {
+        try {
+            await axios_api.delete(`/products/${id}`);
+            setProducts(currentProducts =>
+                currentProducts.filter(product => product.id !== id)
+            );
+            toast.success('Produto excluído');
+        } catch (error) {
+            console.error("Erro ao deletar produto:", error);
+        }
+
     }
-}
+
+    // FUNCAO FILL PRODUCT FORM
+    async function getProductToFillForm(barCode: string){
+        const response = await axios.get<BlueSoftResponse>(`http://localhost:8000/produtos/${barCode}`);
+        return response.data;
+    }
 
 
     return (
@@ -87,7 +106,8 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
             statusConfig,
             financialRisk,
             findProductByName,
-            deleteProduct
+            deleteProduct,
+            getProductToFillForm
         }}>
             {children}
         </ProductsContext.Provider>

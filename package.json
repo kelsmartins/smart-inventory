@@ -1,6 +1,10 @@
 {
   "name": "smart-inventory",
   "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "description": "Sistema de Gestão Preventiva de Estoque",
   "private": true,
   "scripts": {

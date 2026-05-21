@@ -8,20 +8,23 @@ import { toast } from "sonner";
 import { Package } from "lucide-react";
 
 export default function LoginPage() {
-  const { findUserByEmailAndPassword, setUser } = useAuthContext();
+  const { login, isAuthenticated } = useAuthContext();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userExists = await findUserByEmailAndPassword(email, password);
-    if (userExists) {
-      toast.success('Usuário encontrado.');
-      setUser(userExists);
-      router.push('/');
-    } else {
-      toast.error('Usuário não encontrado.');
+    setIsLoading(true);
+    
+    try {
+      const user = await login(email, password);
+      if (user) {
+        router.push('/');
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,9 +100,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-blue-600 px-4 py-3 mt-4 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm shadow-blue-600/30"
+              disabled={isLoading}
+              className="w-full rounded-xl bg-blue-600 px-4 py-3 mt-4 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar no Sistema
+              {isLoading ? 'Entrando...' : 'Entrar no Sistema'}
             </button>
           </form>
 

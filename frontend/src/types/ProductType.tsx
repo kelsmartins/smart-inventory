@@ -1,11 +1,13 @@
+export type ProductStatus = 'valid' | 'alert' | 'critical' | 'expired';
+
 export type ProductType = {
-  id: string;
+  id: string | number;
   name: string;
   barcode?: string;
   category: string;
   expiryDate: string;
   price: number;
-  status: 'valid' | 'alert' | 'critical' | 'expired';
+  status: ProductStatus;
   quantity: number;
-  batch?: string
-}
+  batch?: string | number;
+};

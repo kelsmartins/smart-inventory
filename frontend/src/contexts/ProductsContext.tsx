@@ -1,10 +1,7 @@
 'use client';
 import { createContext, useState, useMemo } from "react";
-import { ProductType } from "../types/ProductType";
 import { axios_api } from "@/api/axios_api";
-import axios from "axios";
-
-import { DashBoardService } from '@/services/dashboard-service'
+import { DashBoardService } from '@/services/dashboard-service';
 import { toast } from "sonner";
 
 export type ProductStatus = 'valid' | 'alert' | 'critical' | 'expired';
@@ -14,6 +11,19 @@ const statusConfig: Record<ProductStatus, { label: string; className: string }> 
     alert: { label: 'Alerta', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
     critical: { label: 'Crítico', className: 'bg-red-100 text-red-800 border-red-200' },
     expired: { label: 'Vencido', className: 'bg-gray-100 text-gray-800 border-gray-300' },
+};
+
+// Tipo compatível com backend Flask
+export type ProductType = {
+    id: number | string;
+    name: string;
+    barcode?: string;
+    category: string;
+    expiryDate: string;
+    price: number;
+    status: ProductStatus;
+    quantity: number;
+    batch?: number | string;
 };
 
 type ProductsContextType = {
@@ -26,9 +36,9 @@ type ProductsContextType = {
     validProducts: ProductType[];
     statusConfig: typeof statusConfig;
     financialRisk: number;
-    findProductByName: (name: string) => Promise<ProductType[]>;
-    deleteProduct: (id: string) => Promise<void>;
+    deleteProduct: (id: number | string) => Promise<void>;
     getProductToFillForm: (barCode: string) => Promise<BlueSoftResponse>;
+    getDashboardData: () => Promise<DashboardData>;
 };
 
 export interface BlueSoftResponse {
@@ -41,9 +51,18 @@ export interface BlueSoftResponse {
     thumbnail?: string;
 }
 
+interface DashboardData {
+    total_products: number;
+    total_batches: number;
+    total_stock: number;
+    total_value: number;
+    monthly_sales: number;
+    monthly_revenue: number;
+}
+
 export const ProductsContext = createContext({} as ProductsContextType);
 
-export const ProductsContextProvider = ({ children }: { children: React.ReactNode }, ) => {
+export const ProductsContextProvider = ({ children }: { children: React.ReactNode }) => {
     const [products, setProducts] = useState<ProductType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -55,44 +74,150 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         financialRisk 
     } = useMemo(() => DashBoardService(products), [products]);
 
-
-    //   funcoes api
-    async function addProduct(newProduct: Omit<ProductType, 'status'>) {
-        const response = await axios_api.post('/products', newProduct);
-        setProducts([...products, response.data]);
-    }
-
+    // Funções API Flask
     async function getProducts() {
-        setIsLoading(true);
-        const response = await axios_api.get('/products');
-        setProducts(response.data);
-        setIsLoading(false);
-    }
-
-    async function findProductByName(name: string) {
-        const response = await axios_api.get(`/products?name=${name}`)
-        return response.data;
-    }
-
-    async function deleteProduct(id: string) {
         try {
-            await axios_api.delete(`/products/${id}`);
-            setProducts(currentProducts =>
-                currentProducts.filter(product => product.id !== id)
-            );
-            toast.success('Produto excluído');
+            setIsLoading(true);
+            const response = await axios_api.get('/products');
+            const productsData = response.data.products || response.data;
+            
+            // Transforma dados do backend para o formato do frontend
+            const transformedProducts: ProductType[] = [];
+            
+            for (const product of productsData) {
+                if (product.batches && Array.isArray(product.batches)) {
+                    // Backend retorna produto com lotes - cria um ProductType para cada lote
+                    for (const batch of product.batches) {
+                        transformedProducts.push({
+                            id: `${product.id}-${batch.id}`,
+                            name: product.name,
+                            barcode: product.barcode,
+                            category: product.category || '',
+                            expiryDate: batch.expiry_date,
+                            price: product.price,
+                            status: batch.status as ProductStatus,
+                            quantity: batch.quantity,
+                            batch: batch.id
+                        });
+                    }
+                } else {
+                    // Produto sem lotes
+                    transformedProducts.push({
+                        id: product.id,
+                        name: product.name,
+                        barcode: product.barcode,
+                        category: product.category || '',
+                        expiryDate: '',
+                        price: product.price,
+                        status: 'valid',
+                        quantity: 0,
+                        batch: undefined
+                    });
+                }
+            }
+            
+            setProducts(transformedProducts);
         } catch (error) {
-            console.error("Erro ao deletar produto:", error);
+            console.error('Erro ao buscar produtos:', error);
+            toast.error('Erro ao carregar produtos');
+        } finally {
+            setIsLoading(false);
         }
-
     }
 
-    // FUNCAO FILL PRODUCT FORM
-    async function getProductToFillForm(barCode: string){
-        const response = await axios.get<BlueSoftResponse>(`http://localhost:8000/produtos/${barCode}`);
-        return response.data;
+    async function addProduct(newProduct: Omit<ProductType, 'status'>) {
+        try {
+            // Backend Flask espera criar produto com lote inicial
+            const productData = {
+                name: newProduct.name,
+                price: newProduct.price,
+                category: newProduct.category,
+                barcode: newProduct.barcode,
+                expiry_date: newProduct.expiryDate,
+                quantity: newProduct.quantity,
+                supplier: newProduct.batch
+            };
+
+            const response = await axios_api.post('/products', productData);
+            const { product, batch } = response.data;
+
+            // Adiciona o novo produto na lista local
+            const transformedProduct: ProductType = {
+                id: `${product.id}-${batch.id}`,
+                name: product.name,
+                barcode: product.barcode,
+                category: product.category || '',
+                expiryDate: batch.expiry_date,
+                price: product.price,
+                status: 'valid',
+                quantity: batch.quantity,
+                batch: batch.id
+            };
+
+            setProducts(prev => [...prev, transformedProduct]);
+            toast.success('Produto cadastrado com sucesso!');
+        } catch (error: unknown) {
+            console.error('Erro ao adicionar produto:', error);
+            const axiosError = error as { response?: { data?: { msg?: string } } };
+            toast.error(axiosError.response?.data?.msg || 'Erro ao cadastrar produto');
+        }
     }
 
+    async function deleteProduct(id: number | string) {
+        try {
+            // Extrai o productId do formato "productId-batchId"
+            const productId = typeof id === 'string' ? parseInt(id.split('-')[0]) : id;
+            
+            await axios_api.delete(`/products/${productId}`);
+            setProducts(currentProducts =>
+                currentProducts.filter(product => {
+                    const productProductId = typeof product.id === 'string' 
+                        ? parseInt(product.id.split('-')[0]) 
+                        : product.id;
+                    return productProductId !== productId;
+                })
+            );
+            toast.success('Produto excluído com sucesso!');
+        } catch (error: unknown) {
+            console.error('Erro ao deletar produto:', error);
+            const axiosError = error as { response?: { data?: { msg?: string } } };
+            toast.error(axiosError.response?.data?.msg || 'Erro ao excluir produto');
+        }
+    }
+
+    // Função para buscar dados do dashboard
+    async function getDashboardData(): Promise<DashboardData> {
+        try {
+            const response = await axios_api.get('/dashboard/summary');
+            return response.data;
+        } catch (error) {
+            console.error('Erro ao buscar dados do dashboard:', error);
+            return {
+                total_products: 0,
+                total_batches: 0,
+                total_stock: 0,
+                total_value: 0,
+                monthly_sales: 0,
+                monthly_revenue: 0
+            };
+        }
+    }
+
+    // FUNÇÃO FILL PRODUCT FORM (API BlueSoft)
+    async function getProductToFillForm(barCode: string): Promise<BlueSoftResponse> {
+        try {
+            const response = await axios_api.get(`/products/barcode/${barCode}`);
+            return response.data;
+        } catch (error) {
+            console.error('Erro ao buscar produto por código de barras:', error);
+            // Retorna dados vazios em caso de erro
+            return {
+                description: '',
+                avg_price: '0',
+                gtin: barCode
+            };
+        }
+    }
 
     return (
         <ProductsContext.Provider value={{
@@ -105,9 +230,9 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
             validProducts,
             statusConfig,
             financialRisk,
-            findProductByName,
             deleteProduct,
-            getProductToFillForm
+            getProductToFillForm,
+            getDashboardData
         }}>
             {children}
         </ProductsContext.Provider>

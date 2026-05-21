@@ -18,7 +18,7 @@ export function UserForm({
   isInInventoryPage,
   ShowCollaboratorForm,
 }: Props) {
-  const { registerUser } = useAuthContext();
+  const { register, login } = useAuthContext();
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
@@ -26,19 +26,11 @@ export function UserForm({
     password: "",
     document: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const { name, email, password, document } = form;
-
-    const newUserData = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      password,
-      document,
-      isAdmin,
-    };
 
     if (!name || !email || !password || !document) {
       toast.error("Preencha todos os campos.");
@@ -49,21 +41,38 @@ export function UserForm({
       return;
     }
 
-    try {
-      await registerUser(newUserData, isAdmin);
+    setIsLoading(true);
 
-      if (isInInventoryPage === false) {
-        toast.success("Conta criada com sucesso!");
-        router.push("/");
-      } else {
-        toast.success("Colaborador adicionado!");
-        if (ShowCollaboratorForm) {
-          ShowCollaboratorForm(); // Fecha o formulário/modal na página pai após salvar
+    try {
+      // Registra o usuário na API Flask
+      const newUser = await register({
+        name,
+        email,
+        password,
+        document,
+        role: isAdmin ? 'admin' : 'operator'
+      });
+
+      if (newUser) {
+        if (isInInventoryPage === false) {
+          // Se for cadastro de conta, faz login automático
+          const loggedInUser = await login(email, password);
+          if (loggedInUser) {
+            toast.success("Conta criada com sucesso!");
+            router.push("/");
+          }
+        } else {
+          toast.success("Colaborador adicionado!");
+          if (ShowCollaboratorForm) {
+            ShowCollaboratorForm();
+          }
         }
       }
     } catch (error) {
       console.error("Erro ao criar conta:", error);
       toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,9 +153,12 @@ export function UserForm({
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-blue-600 px-4 py-3 mt-4 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm shadow-blue-600/30"
+          disabled={isLoading}
+          className="w-full rounded-xl bg-blue-600 px-4 py-3 mt-4 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isInInventoryPage === false ? "Finalizar Cadastro" : "Cadastrar usuário"}
+          {isLoading 
+            ? "Cadastrando..." 
+            : (isInInventoryPage === false ? "Finalizar Cadastro" : "Cadastrar usuário")}
         </button>
       </form>
 

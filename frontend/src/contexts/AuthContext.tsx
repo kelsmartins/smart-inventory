@@ -1,120 +1,142 @@
 "use client";
 import { axios_api } from "@/api/axios_api";
-import { createContext, ReactNode, useState } from "react";
+import { createContext, ReactNode, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // ==================================================
-// TIPO USUÁRIO (com password opcional apenas para o mock)
-// Quando migrar para Flask, remova o campo password e faça a autenticação no back-end.
+// TIPO USUÁRIO (compatível com backend Flask)
 // ==================================================
 export type User = {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  document: string;
-  isAdmin: boolean;
-  password?: string; // 🔴 Temporário – remova ao integrar com Flask
+  document?: string;
+  role: string;
+  created_at?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
-  usersList: User[];
-  registerUser: (newUser: User, isAdmin: boolean) => Promise<void>;
-  findUserByEmailAndPassword: (email: string, password: string) => Promise<User | null>;
-  getUsers: () => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
+  register: (userData: RegisterData) => Promise<User | null>;
   logout: () => void;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+};
+
+type RegisterData = {
+  name: string;
+  email: string;
+  password: string;
+  document?: string;
+  role?: string;
 };
 
 export const AuthContext = createContext({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Carrega o usuário do localStorage ao iniciar (client‑side)
-  const [user, setUserState] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const saved = localStorage.getItem('smart_inventory_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUserState] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
-  const [usersList, setUsersList] = useState<User[]>([]);
+  // Carrega o usuário do localStorage ao iniciar
+  useEffect(() => {
+    const loadUser = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const savedUser = localStorage.getItem('smart_inventory_user');
+          const token = localStorage.getItem('smart_inventory_token');
+          if (savedUser && token) {
+            setUserState(JSON.parse(savedUser));
+          }
+        } catch (error) {
+          console.error('Erro ao carregar usuário:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
 
-  // ✅ Persiste no localStorage sempre que o usuário mudar
   const setUser = (newUser: User | null) => {
     setUserState(newUser);
-    if (newUser) {
-      // Remove a senha antes de salvar (segurança)
-      const { password, ...userToStore } = newUser;
-      localStorage.setItem('smart_inventory_user', JSON.stringify(userToStore));
-    } else {
-      localStorage.removeItem('smart_inventory_user');
+    if (typeof window !== 'undefined') {
+      if (newUser) {
+        localStorage.setItem('smart_inventory_user', JSON.stringify(newUser));
+      } else {
+        localStorage.removeItem('smart_inventory_user');
+        localStorage.removeItem('smart_inventory_token');
+      }
     }
   };
 
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    toast.success('Logout realizado com sucesso!');
+    router.push('/login');
+  };
 
-  async function registerUser(newUser: User, isAdmin: boolean) {
+  // Login usando API Flask
+  async function login(email: string, password: string): Promise<User | null> {
     try {
-      const response = await axios_api.post("/users", newUser);
-      const createdUser = response.data;
-      if (isAdmin === true) {
-        // Não armazena a senha no contexto
-        const { password, ...userWithoutPassword } = createdUser;
-        setUser(userWithoutPassword);
-      } else {
-        setUsersList((prev) => [...prev, createdUser]);
-        toast.success("Colaborador registrado!");
-      }
-    } catch (error) {
-      console.error("Erro ao registrar usuário:", error);
-      toast.error("Erro ao criar conta. Tente novamente.");
-    }
-  }
+      const response = await axios_api.post('/auth/login', { email, password });
+      const { access_token, user: userData } = response.data;
 
-  // ✅ Busca pelo email e compara a senha no front (temporário, evita dupla query)
-  async function findUserByEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<User | null> {
-    try {
-      const cleanEmail = email.trim();
-      const response = await axios_api.get(`/users?email=${cleanEmail}`);
-      const users = response.data;
-      const found = users.find((u: User) => u.password === password.trim());
-      if (found) {
-        // Não retorna a senha
-        const { password: _, ...userWithoutPassword } = found;
-        return userWithoutPassword;
+      // Armazena o token JWT
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('smart_inventory_token', access_token);
       }
-      return null;
-    } catch (error) {
-      console.error("Erro no login:", error);
+
+      // Converte role para isAdmin (compatibilidade)
+      const userWithAdmin = {
+        ...userData,
+        isAdmin: userData.role === 'admin'
+      };
+
+      setUser(userWithAdmin);
+      toast.success('Login realizado com sucesso!');
+      return userWithAdmin;
+    } catch (error: unknown) {
+      console.error('Erro no login:', error);
+      const axiosError = error as { response?: { data?: { msg?: string } } };
+      const message = axiosError.response?.data?.msg || 'Credenciais inválidas';
+      toast.error(message);
       return null;
     }
   }
 
-  async function getUsers() {
+  // Registro usando API Flask
+  async function register(userData: RegisterData): Promise<User | null> {
     try {
-      const response = await axios_api.get(`/users`);
-      setUsersList(response.data);
-    } catch (error) {
-      console.error(error);
+      const response = await axios_api.post('/auth/register', userData);
+      const { user: newUser } = response.data;
+
+      toast.success('Usuário criado com sucesso!');
+      return newUser;
+    } catch (error: unknown) {
+      console.error('Erro no registro:', error);
+      const axiosError = error as { response?: { data?: { msg?: string } } };
+      const message = axiosError.response?.data?.msg || 'Erro ao criar usuário';
+      toast.error(message);
+      return null;
     }
   }
 
   return (
     <AuthContext.Provider
       value={{
-        registerUser,
         user,
         setUser,
+        login,
+        register,
         logout,
-        findUserByEmailAndPassword,
-        usersList,
-        getUsers,
+        isAuthenticated: !!user,
+        isLoading,
       }}
     >
       {children}

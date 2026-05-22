@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app import db, jwt
 from app.models.product import Product
+from app.models.batch import Batch
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
 
@@ -55,9 +56,22 @@ def create_product():
     )
     
     db.session.add(product)
+    db.session.flush() # To get product.id
+    
+    # Automatically create a batch for the product
+    batch = Batch(
+        code=data.get('batch_code') or f"BATCH-{product.id}",
+        manufacturing_date=datetime.utcnow().date(),
+        expiry_date=expiry_date,
+        quantity=product.quantity,
+        initial_quantity=product.quantity,
+        product_id=product.id
+    )
+    db.session.add(batch)
+    
     db.session.commit()
     
-    return jsonify({"message": "Product created successfully", "id": product.id}), 201
+    return jsonify({"message": "Product and batch created successfully", "id": product.id}), 201
 
 @products_bp.route('/<int:product_id>', methods=['PUT'])
 @jwt_required()

@@ -11,10 +11,15 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    # Aqui viria a lógica para verificar a senha e gerar o token JWT
-    return jsonify({"message": "Rota de login funcionando!"}), 200
+    # Lógica para autenticar o usuário
+    return jsonify({"message": "Usuário autenticado com sucesso"}), 200
 
 @auth_bp.route('/me', methods=['GET'])
 def get_me():
     # Aqui retornaria os dados do usuário logado
     return jsonify({"message": "Rota de perfil funcionando!"}), 200
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    # Lógica para desconectar o usuário
+    return jsonify({"message": "Usuário desconectado com sucesso"}), 200

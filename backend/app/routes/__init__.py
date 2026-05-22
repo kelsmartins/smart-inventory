@@ -1,5 +1,4 @@
-# app/routes/__init__.py
-
+from flask import Blueprint
 from .auth import auth_bp        
 from .products import products_bp 
 from .inventory import inventory_bp

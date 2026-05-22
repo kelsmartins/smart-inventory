@@ -15,6 +15,7 @@ export type User = {
   email: string;
   document?: string;
   role: string;        // 'admin' ou 'operator'
+  isAdmin: boolean;    // permissão de administrador
   created_at?: string;
 };
 

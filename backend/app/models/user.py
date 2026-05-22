@@ -10,6 +10,9 @@ class User(db.Model):
     # Nome de usuário único para login (deve ser único no banco)
     username = db.Column(db.String(80), unique=True, nullable=False)
     
+    # Indica se o usuário tem privilégios de administrador
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    
     # Armazena a senha criptografada (nunca em texto puro)
     password_hash = db.Column(db.String(128), nullable=False)
 
@@ -36,5 +39,5 @@ class User(db.Model):
         return {
             'id': self.id,
             'username': self.username,
-            # Se futuramente adicionar email, role, etc., acrescente aqui
+            'isAdmin': self.is_admin,
         }

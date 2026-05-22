@@ -1,4 +1,4 @@
-from app import db
+from app.extensions.db import db
 from datetime import datetime
 import enum
 

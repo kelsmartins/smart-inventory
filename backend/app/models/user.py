@@ -1,4 +1,4 @@
-from app import db
+from app.extensions.db import db
 from bcrypt import hashpw, gensalt, checkpw
 
 class User(db.Model):

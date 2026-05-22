@@ -1,11 +1,26 @@
-from app import create_app
+from flask import Flask
+from dotenv import load_dotenv
+import os
 
-# Cria a instância do Flask usando a factory function
-app = create_app()
+from app.extensions.db import db
 
-# Se este arquivo for executado diretamente (python run.py), roda o servidor de desenvolvimento
+load_dotenv()
+
+app = Flask(__name__)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+
+from app.models import *
+
+with app.app_context():
+    db.create_all()
+
+@app.route('/')
+def index():
+    return "API funcionando"
+
 if __name__ == '__main__':
-    # host='0.0.0.0' permite acesso externo (útil para testes na rede local)
-    # port=5000 é a porta padrão do Flask
-    # debug=True recarrega automaticamente quando o código muda
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)

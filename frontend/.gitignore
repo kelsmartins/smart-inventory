@@ -1,44 +1,55 @@
-# Dependencies
+# ==============================================================================
+# .gitignore - FRONTEND
+# DESCRIÇÃO: Define arquivos e pastas ignorados no frontend Next.js.
+# Garante que apenas o código fonte seja versionado, ignorando artefatos de build.
+# ==============================================================================
+
+# Dependências
+# node_modules é excessivamente grande e é reinstalado via npm install / yarn install
 node_modules/
 .pnp
 .pnp.js
 
-# Testing
+# Testes
+# Pastas de relatórios de cobertura de testes
 /coverage
 
-# Production
+# Build e Produção
+# Pastas geradas após o comando 'npm run build', não devem ser versionadas
 /build
 /out
 
 # Next.js
+# Pasta de cache e build do Next.js
 .next/
 out/
 
-# Environment
+# Variáveis de Ambiente
+# Arquivos .env.local contêm chaves de API e URLs privadas
 .env*.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# Debug
+# Logs de Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Vercel
+# Deploy e Ferramentas (Vercel)
 .vercel
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
+# Configurações de IDE (VS Code, IntelliJ, etc)
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
+# Arquivos de Sistema Operacional
 .DS_Store
 Thumbs.db

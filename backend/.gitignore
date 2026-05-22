@@ -1,13 +1,18 @@
-# Ambiente virtual
+# Dependências e Ambiente Virtual
+# Não enviamos a venv pois ela deve ser recriada em cada ambiente via requirements.txt
 venv/
 __pycache__/
 *.pyc
 
-# Arquivos de configuração local
+# Segurança e Configurações Locais
+# O arquivo .env contém chaves secretas e senhas do banco de dados (NUNCA subir ao Git)
 .env
 
-# Pastas de migração e cache
+# Banco de Dados e Migrações
+# A pasta instance contém o banco SQLite local. Migrations são controladas via Alembic.
 migrations/
 instance/
+
+# Cache e Sistema
 .pytest_cache/
 .DS_Store

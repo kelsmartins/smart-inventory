@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# ==============================================================================
-# SMART INVENTORY - GESTÃO DE VALIDADE (FEFO)
-# ==============================================================================
-
 # 📦 Dependências e Pacotes
 # Não ignoramos o package-lock.json para garantir consistência no Vercel
 node_modules/

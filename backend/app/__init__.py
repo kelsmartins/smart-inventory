@@ -44,16 +44,16 @@ def create_app():
 
     # ---------- BLUEPRINTS (AQUI ESTÁ A CORREÇÃO) ----------
 
-    # from app.routes.auth import auth_bp
+    from app.routes.auth import auth_bp
     from app.routes.products import products_bp
-    # from app.routes.inventory import inventory_bp
-    # from app.routes.sales import sales_bp
-    # from app.routes.dashboard import dashboard_bp
+    from app.routes.inventory import inventory_bp
+    from app.routes.sales import sales_bp
+    from app.routes.dashboard import dashboard_bp
     
-    # app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(products_bp, url_prefix='/products')
-    # app.register_blueprint(inventory_bp, url_prefix='/inventory')
-    # app.register_blueprint(sales_bp, url_prefix='/sales')
-    # app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(inventory_bp, url_prefix='/inventory')
+    app.register_blueprint(sales_bp, url_prefix='/sales')
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
 
     return app

@@ -207,4 +207,12 @@ def create_product():
     
     db.session.commit()
     
-    return jsonify({"message": "Product and batch created successfully", "id": product.id}), 201
+    return jsonify({
+        "product": {
+            "id": product.id,
+            "name": product.name,
+            "barcode": product.barcode,
+            "category": product.category,
+            "price": product.price
+        }
+    }), 201

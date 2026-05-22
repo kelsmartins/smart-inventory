@@ -107,7 +107,7 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
                         name: product.name,
                         barcode: product.barcode,
                         category: product.category || '',
-                        expiryDate: '',
+                        expiryDate: product.expiryDate,
                         price: product.price,
                         status: 'valid',
                         quantity: 0,

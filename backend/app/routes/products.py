@@ -10,8 +10,11 @@ products_bp = Blueprint('products', __name__)
 @products_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_products():
+    """
+    Lista todos os produtos vinculados ao usuário logado.
+    Retorno: Lista de produtos com detalhes de estoque e validade.
+    """
     user_id = get_jwt_identity()
-    # Buscar produtos do usuário logado
     products = Product.query.filter_by(user_id=user_id).all()
     
     result = []
@@ -32,6 +35,10 @@ def get_products():
 @products_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_product():
+    """
+    Cria um novo produto e automaticamente gera o primeiro lote associado.
+    Requisito: JSON com 'name' e 'expiry_date'.
+    """
     data = request.get_json()
     user_id = get_jwt_identity()
     
@@ -39,11 +46,11 @@ def create_product():
         return jsonify({"message": "Name and expiry_date are required"}), 400
     
     try:
-        # Converte data para objeto date do Python
         expiry_date = datetime.strptime(data['expiry_date'], '%Y-%m-%d').date()
     except ValueError:
         return jsonify({"message": "Invalid date format. Use YYYY-MM-DD"}), 400
     
+    # 1. Cria a entidade Produto
     product = Product(
         name=data.get('name'),
         barcode=data.get('barcode'),
@@ -56,9 +63,9 @@ def create_product():
     )
     
     db.session.add(product)
-    db.session.flush() # To get product.id
+    db.session.flush() # Garante a criação do ID do produto para usar no lote
     
-    # Automatically create a batch for the product
+    # 2. Cria automaticamente o Lote inicial (Essencial para FEFO)
     batch = Batch(
         code=data.get('batch_code') or f"BATCH-{product.id}",
         manufacturing_date=datetime.utcnow().date(),
@@ -76,6 +83,10 @@ def create_product():
 @products_bp.route('/<int:product_id>', methods=['PUT'])
 @jwt_required()
 def update_product(product_id):
+    """
+    Atualiza os dados de um produto existente.
+    Verifica se o produto pertence ao usuário logado antes de editar.
+    """
     user_id = get_jwt_identity()
     product = Product.query.filter_by(id=product_id, user_id=user_id).first()
     
@@ -84,6 +95,7 @@ def update_product(product_id):
     
     data = request.get_json()
     
+    # Atualiza apenas os campos fornecidos no JSON
     if 'name' in data: product.name = data['name']
     if 'barcode' in data: product.barcode = data['barcode']
     if 'category' in data: product.category = data['category']
@@ -102,6 +114,9 @@ def update_product(product_id):
 @products_bp.route('/<int:product_id>', methods=['DELETE'])
 @jwt_required()
 def delete_product(product_id):
+    """
+    Remove um produto do sistema.
+    """
     user_id = get_jwt_identity()
     product = Product.query.filter_by(id=product_id, user_id=user_id).first()
     

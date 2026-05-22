@@ -9,8 +9,11 @@ inventory_bp = Blueprint('inventory', __name__)
 @inventory_bp.route('/expiring', methods=['GET'])
 @jwt_required()
 def get_expiring_products():
+    """
+    Identifica produtos que vencerão nos próximos 30 dias.
+    Lógica: Filtra produtos onde a data de validade está entre 'hoje' e 'hoje + 30 dias'.
+    """
     user_id = get_jwt_identity()
-    # Produtos que vencem nos próximos 30 dias
     today = datetime.utcnow().date()
     thirty_days_later = today + timedelta(days=30)
     
@@ -34,6 +37,10 @@ def get_expiring_products():
 @inventory_bp.route('/summary', methods=['GET'])
 @jwt_required()
 def get_inventory_summary():
+    """
+    Gera um resumo quantitativo do inventário do usuário.
+    Retorno: Quantidade de produtos únicos e total de itens em estoque.
+    """
     user_id = get_jwt_identity()
     total_products = Product.query.filter_by(user_id=user_id).count()
     total_items = db.session.query(db.func.sum(Product.quantity)).filter_by(user_id=user_id).scalar() or 0

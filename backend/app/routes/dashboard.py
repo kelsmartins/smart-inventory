@@ -10,15 +10,19 @@ dashboard_bp = Blueprint('dashboard', __name__)
 @dashboard_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_stats():
+    """
+    Calcula métricas globais do inventário e financeiro do usuário.
+    Utiliza funções de agregação do SQLAlchemy para performance.
+    """
     user_id = get_jwt_identity()
     
-    # Total Revenue
+    # Receita Total: Soma de todos os totais da tabela Sale
     total_revenue = db.session.query(func.sum(Sale.total)).filter_by(user_id=user_id).scalar() or 0.0
     
-    # Total Products
+    # Total de Produtos Únicos cadastrados
     total_products = Product.query.filter_by(user_id=user_id).count()
     
-    # Total Items in Stock
+    # Quantidade total de itens somando todos os produtos no estoque
     total_items = db.session.query(func.sum(Product.quantity)).filter_by(user_id=user_id).scalar() or 0.0
     
     return jsonify({

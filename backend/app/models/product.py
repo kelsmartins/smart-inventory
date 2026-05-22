@@ -4,18 +4,50 @@ from datetime import datetime
 class Product(db.Model):
     __tablename__ = 'products'
     
-    
+    # Identificador único do produto
     id = db.Column(db.Integer, primary_key=True)
+    
+    # Nome descritivo do item (obrigatório)
     name = db.Column(db.String(200), nullable=False)
-    barcode = db.Column(db.String(50), unique=True, nullable=True) # 'barcode'
+    
+    # Código de barras para identificação rápida via scanner (opcional e único)
+    barcode = db.Column(db.String(50), unique=True, nullable=True)
+    
+    # Categoria para organização (ex: Medicamentos, Higiene)
     category = db.Column(db.String(100), nullable=True)
-    expiry_date = db.Column(db.Date, nullable=False)              # 'expiryDate'
+    
+    # Data de validade geral do produto (utilizada para alertas de vencimento)
+    expiry_date = db.Column(db.Date, nullable=False)
+    
+    # Preço de venda unitário
     price = db.Column(db.Float, nullable=False, default=0.0)
+    
+    # Quantidade total disponível (soma de todos os lotes)
     quantity = db.Column(db.Float, nullable=False, default=1.0)
+    
+    # Código do lote principal ou referência
     batch_code = db.Column(db.String(100), nullable=True)
 
+    # Relacionamento com a tabela de Usuários (Posse do produto)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     user = db.relationship('User', backref='products')
 
     def __repr__(self):
+        """Representação textual do produto para debugging."""
         return f"<Product {self.name} - barcode: {self.barcode}>"
+    
+    def to_dict(self):
+        """
+        Converte o objeto Product em um dicionário para retorno em JSON.
+        Inclui os campos principais, exceto chaves estrangeiras ou relacionamentos.
+        """
+        return {
+            'id': self.id,
+            'name': self.name,
+            'barcode': self.barcode,
+            'category': self.category,
+            'expiry_date': self.expiry_date.isoformat() if self.expiry_date else None,
+            'price': self.price,
+            'quantity': self.quantity,
+            'batch_code': self.batch_code
+        }

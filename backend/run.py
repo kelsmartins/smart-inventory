@@ -1,4 +1,5 @@
 from flask import Flask
+
 from dotenv import load_dotenv
 import os
 
@@ -23,4 +24,5 @@ def index():
     return "API funcionando"
 
 if __name__ == '__main__':
+    # Flask roda nativamente na porta 5000 
     app.run(debug=True)

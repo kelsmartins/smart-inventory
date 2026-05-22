@@ -1,14 +1,15 @@
 from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
+# from flask_jwt_extended import JWTManager  # <-- JWT COMENTADO AQUI
 from flask_cors import CORS
-from .config import Config
 
-# Inicializa extensões (sem o app ainda)
-db = SQLAlchemy()
+from app.config import Config
+
+from app.extensions.db import db
+
+# Inicializa as outras extensões
 migrate = Migrate()
-jwt = JWTManager()
+# jwt = JWTManager() # <-- JWT COMENTADO AQUI
 
 def create_app():
     app = Flask(__name__)
@@ -17,8 +18,10 @@ def create_app():
     # Vincula extensões
     db.init_app(app)
     migrate.init_app(app, db)
-    jwt.init_app(app)
-    CORS(app)
+    # jwt.init_app(app) # <-- JWT COMENTADO AQUI
+    
+    # CORS Agressivo: Libera o React
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Importa modelos para o SQLAlchemy reconhecer as tabelas
     from app.models.product import Product
@@ -35,54 +38,13 @@ def create_app():
 
     @app.route('/')
     def home():
-        """Página inicial com links clicáveis para /users e /products."""
+        """Página inicial"""
         return '''
         <h1>Smart Inventory API</h1>
-        <p><a href="/users">📋 /users</a> - Lista de usuários (JSON)</p>
-        <p><a href="/products">📦 /products</a> - Lista de produtos (JSON)</p>
         <p><a href="/health">❤️ /health</a> - Status da API</p>
         '''
 
-    # ---------- ROTAS AUXILIARES PARA VISUALIZAÇÃO RÁPIDA ----------
-    @app.route('/users')
-    def list_users():
-        """Retorna todos os usuários em formato JSON (público para testes)."""
-        users = User.query.all()
-        # Se o modelo User não tiver o método to_dict, usa um dicionário manual
-        result = []
-        for u in users:
-            if hasattr(u, 'to_dict'):
-                result.append(u.to_dict())
-            else:
-                # Fallback seguro (ajuste os campos conforme seu modelo)
-                result.append({
-                    'id': u.id,
-                    'username': getattr(u, 'username', None),
-                    'email': getattr(u, 'email', None),
-                    'role': getattr(u, 'role', 'operator')
-                })
-        return jsonify(result)
-
-    @app.route('/products')
-    def list_products():
-        """Retorna todos os produtos em formato JSON (público para testes)."""
-        products = Product.query.all()
-        result = []
-        for p in products:
-            if hasattr(p, 'to_dict'):
-                result.append(p.to_dict())
-            else:
-                # Fallback para o modelo Product atual
-                result.append({
-                    'id': p.id,
-                    'name': p.name,
-                    'price': p.price,
-                    'quantity': p.quantity,
-                    'expiry_date': p.expiry_date.isoformat() if p.expiry_date else None
-                })
-        return jsonify(result)
-
-    # ---------- REGISTRO DOS BLUEPRINTS (MÓDULOS DE ROTAS) ----------
+    # ---------- REGISTRO DOS BLUEPRINTS ----------
     from app.routes.auth import auth_bp
     from app.routes.products import products_bp
     from app.routes.inventory import inventory_bp

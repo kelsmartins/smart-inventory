@@ -1,14 +1,24 @@
-# Dependências do projeto (instalar com pip install -r requirements.txt)
-Flask==2.3.3
-Flask-SQLAlchemy==3.1.1
-Flask-Migrate==4.0.5
-Flask-JWT-Extended==4.5.3
-Flask-CORS==4.0.0
-python-dotenv==1.0.0
-pymysql==1.1.0            # Driver para conectar o Flask ao MySQL (XAMPP)
-bcrypt==4.1.2
-pytest==7.4.3
-flasgger==0.9.7.1
-gunicorn==21.2.0          # Servidor HTTP para produção (Render)
-pymysql==1.1.0
-psycopg2-binary==2.9.12
+# --- Core da API ---
+Flask==2.3.3              # Framework principal do backend
+Flask-CORS==4.0.0         # Permite que o frontend (Vercel) acesse esta API (Render)
+
+# --- Banco de Dados e ORM ---
+Flask-SQLAlchemy==3.1.1   # Mapeamento Objeto-Relacional (ORM) para lidar com as tabelas
+Flask-Migrate==4.0.5      # Gerenciador de migrações do banco de dados (histórico de tabelas)
+psycopg2-binary==2.9.12   # Driver do PostgreSQL (Banco de dados de produção gratuito do Render)
+pymysql==1.1.0            # Driver do MySQL (Caso a equipe teste usando XAMPP localmente)
+
+# --- Segurança e Autenticação ---
+Flask-JWT-Extended==4.5.3 # Gerador e validador de tokens de sessão seguros (JWT)
+bcrypt==4.1.2             # Criptografia forte para as senhas dos usuários
+
+# --- Integrações Externas ---
+requests==2.31.0          # Essencial: Faz as requisições para a API da Bluesoft Cosmos
+
+# --- Produção e Configurações ---
+gunicorn==21.2.0          # Servidor HTTP de produção exigido pelo Render para rodar o Flask
+python-dotenv==1.0.0      # Carrega as variáveis do arquivo .env (senhas e tokens)
+
+# --- Documentação e Testes ---
+flasgger==0.9.7.1         # Gerador de documentação visual da API (Swagger)
+pytest==7.4.3             # Framework para rodar testes automatizados no código

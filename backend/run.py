@@ -1,28 +1,9 @@
-from flask import Flask
 
-from dotenv import load_dotenv
-import os
+from app import create_app
 
-from app.extensions.db import db
-
-load_dotenv()
-
-app = Flask(__name__)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db.init_app(app)
-
-from app.models import *
-
-with app.app_context():
-    db.create_all()
-
-@app.route('/')
-def index():
-    return "API funcionando"
+# Aqui ele vai lá no app/__init__.py, liga o banco, liga o CORS e registra as rotas (Blueprints)
+app = create_app()
 
 if __name__ == '__main__':
-    # Flask roda nativamente na porta 5000 
-    app.run(debug=True)
+    # Roda a API completa liberada para o React na porta 5000
+    app.run(host='0.0.0.0', port=5000, debug=True)

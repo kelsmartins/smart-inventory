@@ -82,23 +82,21 @@ def create_product():
     
     # 3. Retorna os dados completos que o frontend React espera
     return jsonify({
-        "product": {
-            "id": product.id,
-            "name": product.name,
-            "barcode": product.barcode,
-            "category": product.category,
-            "price": product.price,
-            "expiryDate": product.expiry_date.isoformat(),
-            "quantity": product.quantity,
-            "batch": product.batch_code or batch.code
-        }
+        "id": product.id,
+        "name": product.name,
+        "barcode": product.barcode,
+        "category": product.category,
+        "price": product.price,
+        "expiryDate": product.expiry_date.isoformat(),
+        "quantity": product.quantity,
+        "batch": product.batch_code or batch.code
     }), 201
 
 
 # ====================//  BUSCAR CÓDIGO DE BARRAS (BLUESOFT)  //========================
 @products_bp.route('/barcode/<barcode>', methods=['GET'])
 def buscar_produto(barcode):
-    """
+    """cxc
     Consulta a API da Bluesoft para preenchimento automático via código de barras.
     """
     token = os.getenv("BLUESOFT_TOKEN") 

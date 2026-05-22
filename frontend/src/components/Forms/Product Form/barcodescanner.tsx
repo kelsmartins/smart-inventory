@@ -31,7 +31,7 @@ export const BarcodeScanner = ({ setOpenScanner, fillFormWithBarcodeData }: Prop
 
         const productToFill: ProductType = {
           id: '',
-          name: response.description,
+          name: response.description || '',
           barcode: String(response.gtin),
           category: response.category?.description || '',
           expiryDate: '',
@@ -40,7 +40,7 @@ export const BarcodeScanner = ({ setOpenScanner, fillFormWithBarcodeData }: Prop
           quantity: 1,
           batch: ''
         }
-
+        console.log(response)
         fillFormWithBarcodeData(productToFill)
 
         setOpenScanner();

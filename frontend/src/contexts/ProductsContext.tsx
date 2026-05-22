@@ -127,21 +127,11 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
 
     async function addProduct(newProduct: Omit<ProductType, 'status'>) {
         try {
-            // Backend Flask espera criar produto com lote inicial
-            const productData = {
-                name: newProduct.name,
-                price: newProduct.price,
-                category: newProduct.category,
-                barcode: newProduct.barcode,
-                expiry_date: newProduct.expiryDate,
-                quantity: newProduct.quantity,
-                supplier: newProduct.batch
-            };
 
-            const response = await axios_api.post('/products', productData);
+            const response = await axios_api.post('/products', newProduct);
             const { product, batch } = response.data;
 
-            // Adiciona o novo produto na lista local
+            // Adiciona o novo produto na lista localS
             const transformedProduct: ProductType = {
                 id: `${product.id}-${batch.id}`,
                 name: product.name,

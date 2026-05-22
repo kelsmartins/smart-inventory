@@ -127,29 +127,34 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
 
     async function addProduct(newProduct: Omit<ProductType, 'status'>) {
         try {
-
             const response = await axios_api.post('/products', newProduct);
-            const { product, batch } = response.data;
+            
+            // Agora o response.data JÁ É o produto certinho que o Backend devolveu
+            const savedData = response.data;
 
-            // Adiciona o novo produto na lista localS
+            // Transforma para o formato que a tabela do React usa
             const transformedProduct: ProductType = {
-                id: `${product.id}-${batch.id}`,
-                name: product.name,
-                barcode: product.barcode,
-                category: product.category || '',
-                expiryDate: batch.expiry_date,
-                price: product.price,
-                status: 'valid',
-                quantity: batch.quantity,
-                batch: batch.id
+                // Combina o ID do produto com o código do lote gerado
+                id: `${savedData.id}-${savedData.batch}`,
+                name: savedData.name,
+                barcode: savedData.barcode,
+                category: savedData.category || '',
+                expiryDate: savedData.expiryDate,
+                price: savedData.price,
+                status: 'valid', // O DashBoardService recalcula automaticamente se estiver perto de vencer
+                quantity: savedData.quantity,
+                batch: savedData.batch
             };
 
+            // Adiciona na lista atual sem precisar recarregar a página!
             setProducts(prev => [...prev, transformedProduct]);
             toast.success('Produto cadastrado com sucesso!');
+            
         } catch (error: unknown) {
             console.error('Erro ao adicionar produto:', error);
-            const axiosError = error as { response?: { data?: { msg?: string } } };
-            toast.error(axiosError.response?.data?.msg || 'Erro ao cadastrar produto');
+            // Ajustei de "msg" para "message" para casar exatamente com o erro que o Flask manda
+            const axiosError = error as { response?: { data?: { message?: string } } };
+            toast.error(axiosError.response?.data?.message || 'Erro ao cadastrar produto');
         }
     }
 

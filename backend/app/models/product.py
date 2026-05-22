@@ -14,7 +14,7 @@ class Product(db.Model):
     barcode = db.Column(db.String(50), unique=True, nullable=True)
     
     # Categoria para organização (ex: Medicamentos, Higiene)
-    category = db.Column(db.String(100), nullable=True)
+    category = db.Column(db.String(50), nullable=True)
     
     # Data de validade geral do produto (utilizada para alertas de vencimento)
     expiry_date = db.Column(db.Date, nullable=False)
@@ -26,7 +26,7 @@ class Product(db.Model):
     quantity = db.Column(db.Float, nullable=False, default=1.0)
     
     # Código do lote principal ou referência
-    batch_code = db.Column(db.String(100), nullable=True)
+    batch_code = db.Column(db.String(20), nullable=True)
 
     # Relacionamento com a tabela de Usuários (Posse do produto)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)

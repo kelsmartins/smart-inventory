@@ -27,7 +27,7 @@ def get_products():
             "expiryDate": p.expiry_date.isoformat() if p.expiry_date else None,
             "price": p.price,
             "quantity": p.quantity,
-            "batch_code": p.batch_code
+            "batch": p.batch_code
         })
     
     return jsonify(result), 200

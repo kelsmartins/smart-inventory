@@ -96,22 +96,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-  // LOGIN DIRETO NO SUPABASE
-  // ==========================================
-  async function login(email: string, password: string): Promise<User | null> {
+// LOGIN DIRETO NO SUPABASE
+// ==========================================
+async function login(email: string, password: string): Promise<User | null> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      console.log("1. Iniciando login no Supabase...");
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
       
-      // Busca os dados da pessoa no banco de dados e retorna
-      const userData = await fetchUserProfile();
+      console.log("2. Supabase logou! Token gerado:", data.session?.access_token ? "SIM" : "NÃO");
+
+      console.log("3. Indo buscar o perfil no Flask...");
+      const response = await axios_api.get('/auth/me');
+      
+      const userData = response.data;
+      setUser(userData);
       toast.success('Login realizado com sucesso!');
-      return userData;
+      return userData; 
 
     } catch (error: any) {
-      console.error('Erro no login:', error);
-      toast.error('Email ou senha incorretos');
+      console.error('❌ ERRO NO LOGIN:', error);
+      
+      if (error.response) {
+        console.error('❌ O FLASK REJEITOU POR CAUSA DISSO:', error.response.data);
+        alert("O Flask disse: " + JSON.stringify(error.response.data));
+      }
+      
+      toast.error('Email ou senha incorretos ou erro de servidor.');
       return null;
     }
   }

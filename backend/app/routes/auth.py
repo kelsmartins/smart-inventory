@@ -1,73 +1,74 @@
+import os
 from flask import Blueprint, jsonify, request
-from app import db, jwt
+from app import db
 from app.models.user import User
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+# Necessário para a rota de criar colaborador
+from supabase import create_client, Client
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    """
-    Cria um novo usuário no sistema.
-    Requisito: JSON com 'username' e 'password'.
-    """
-    data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        return jsonify({"message": "Username and password are required"}), 400
-    
-    # Verifica se o usuário já existe para evitar duplicidade
-    if User.query.filter_by(username=data['username']).first():
-        return jsonify({"message": "Username already exists"}), 400
-    
-    user = User(username=data['username'])
-    user.set_password(data['password']) # Criptografa a senha via Bcrypt
-    
-    db.session.add(user)
-    db.session.commit()
-    
-    return jsonify({"message": "User registered successfully"}), 201
-
-@auth_bp.route('/login', methods=['POST'])
-def login():
-    """
-    Autentica o usuário e gera um Token JWT de acesso.
-    Requisito: JSON com 'username' e 'password'.
-    """
-    data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        return jsonify({"message": "Username and password are required"}), 400
-    
-    # Busca o usuário e verifica a senha criptografada
-    user = User.query.filter_by(username=data['username']).first()
-    if not user or not user.check_password(data['password']):
-        return jsonify({"message": "Invalid username or password"}), 401
-    
-    # Gera o token assinado com a identity sendo o ID do usuário
-    access_token = create_access_token(identity=str(user.id))
-    return jsonify({"message": "Login successful", "access_token": access_token}), 200
-
-@auth_bp.route('/me', methods=['GET'])
+# ====================//  GET ME (Perfil do Usuário)  //========================
+@auth_bp.route('/me', methods=['GET'], strict_slashes=False)
 @jwt_required()
 def get_me():
     """
-    Retorna os dados do usuário autenticado.
-    Requisito: Token JWT válido no Header da requisição.
+    Retorna os dados públicos do banco (nome, documento, role) do usuário logado.
+    O React manda o Token do Supabase, o Flask lê o ID que está dentro dele.
     """
-    user_id = get_jwt_identity() # Extrai o ID do token JWT
+    # No JWT do Supabase, o ID (UUID) fica armazenado automaticamente na identidade
+    user_id = get_jwt_identity() 
+    
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"message": "User not found"}), 404
+        return jsonify({"message": "Usuário não encontrado no banco"}), 404
     
-    return jsonify({
-        "id": user.id,
-        "username": user.username
-    }), 200
+    return jsonify(user.to_dict()), 200
 
-@auth_bp.route('/logout', methods=['POST'])
+
+# ====================//  CRIAR COLABORADOR (Apenas Admin)  //========================
+@auth_bp.route('/collaborator', methods=['POST'], strict_slashes=False)
 @jwt_required()
-def logout():
+def create_collaborator():
     """
-    Informa ao sistema que o usuário deseja sair.
-    Nota: No JWT, o logout é primariamente feito no Frontend deletando o token.
+    Rota protegida onde o Admin cria um novo funcionário para o sistema.
     """
-    return jsonify({"message": "Successfully logged out"}), 200
+    # 1. Verifica se quem está tentando criar é realmente um Admin
+    admin_id = get_jwt_identity()
+    admin_user = User.query.get(admin_id)
+    
+    if not admin_user or admin_user.role != 'admin':
+        return jsonify({"message": "Acesso negado. Apenas administradores podem criar contas."}), 403
+
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    name = data.get('name')
+    document = data.get('document')
+
+    if not email or not password:
+        return jsonify({"message": "Email e senha são obrigatórios"}), 400
+
+    try:
+        # 2. Inicializa o Supabase com poderes de Super Usuário (Service Role)
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+        supabase_admin = create_client(url, key)
+
+        # 3. Cria o usuário no Supabase sem deslogar o Admin
+        new_user = supabase_admin.auth.admin.create_user({
+            "email": email,
+            "password": password,
+            "email_confirm": True, 
+            "user_metadata": {
+                "name": name,
+                "document": document,
+                "role": "collaborator" # <-- A mágica pro Banco de Dados saber o cargo!
+            }
+        })
+        
+        return jsonify({"message": "Colaborador criado com sucesso!"}), 201
+
+    except Exception as e:
+        return jsonify({"message": f"Falha na criação: {str(e)}"}), 400

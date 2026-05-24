@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '../app/globals.css';
@@ -7,6 +6,7 @@ import { Toaster } from 'sonner';
 import { Navbar } from '@/components/Navbar';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProductsContextProvider } from '@/contexts/ProductsContext';
+import { RouteGuard } from '@/components/RouteGuard'; // <-- Importe o Guardião aqui!
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -25,18 +25,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      
       <body className={`${inter.variable} min-h-screen flex flex-col bg-[#E8E9E8] font-sans `}>
         <AuthProvider>
-          <ProductsContextProvider>
-            <Navbar />
-            
-            <main className="flex-1 flex flex-col">
-              {children}
-            </main>
+          <RouteGuard>
+           
+            <ProductsContextProvider>
+              <Navbar />
+              
+              <main className="flex-1 flex flex-col">
+                {children}
+              </main>
 
-            <Toaster richColors position="top-right" />
-          </ProductsContextProvider>
+              <Toaster richColors position="top-right" />
+            </ProductsContextProvider>
+          </RouteGuard>
         </AuthProvider>
       </body>
     </html>

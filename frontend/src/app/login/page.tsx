@@ -14,20 +14,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // 1. Correção: Tipagem exata do evento de formulário para o TypeScript
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // pequena trava de segurança pra não enviar formulário vazio
     if (!email || !password) return;
 
     setIsLoading(true);
     
     try {
-      // supabase faz a checagem, e o Contexto já exibe as mensagens de erro/sucesso
       const user = await login(email, password);
       
       if (user) {
-        // redireciona para o Dashboard em caso de sucesso
         router.push('/');
       }
     } catch (error) {
@@ -40,10 +38,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       
-      {/* Cartão Centralizado com duas colunas internas */}
       <div className="w-full max-w-[850px] flex flex-col md:flex-row bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
         
-        {/* Coluna da Imagem (Apenas 40% do cartão, escondida no mobile) */}
         <div className="hidden md:flex md:w-[40%] relative bg-slate-900 items-center justify-center p-8">
           <div 
             className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1578916171728-46686eac8d58?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center opacity-30"
@@ -61,7 +57,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Coluna do Formulário (60% do cartão, foco total) */}
         <div className="w-full md:w-[60%] p-8 sm:p-12">
           <div className="flex flex-col items-center mb-6 md:hidden">
             <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl mb-3">
@@ -86,6 +81,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email" // 2. Correção: Aviso de autocomplete
                 placeholder="seu@email.com"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 required
@@ -101,6 +97,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password" // 3. Correção: Aviso de autocomplete
                 placeholder="••••••••"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 required

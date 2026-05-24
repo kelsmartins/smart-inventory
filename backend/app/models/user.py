@@ -1,43 +1,32 @@
 from app.extensions.db import db
-from bcrypt import hashpw, gensalt, checkpw
+from datetime import datetime
 
 class User(db.Model):
     __tablename__ = 'users'
     
-    # Chave primária auto-incremento
-    id = db.Column(db.Integer, primary_key=True)
+    # ID como String para suportar o UUID do Supabase
+    id = db.Column(db.String(36), primary_key=True)
     
-    # Nome de usuário único para login (deve ser único no banco)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(120), nullable=True)
+    document = db.Column(db.String(20), nullable=True)
     
-    # Indica se o usuário tem privilégios de administrador
-    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    # Padrão definido como admin
+    role = db.Column(db.String(20), default='admin', nullable=False)
     
-    # Armazena a senha criptografada (nunca em texto puro)
-    password_hash = db.Column(db.String(128), nullable=False)
+    # Adicionado para bater com o front-end
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def set_password(self, password):
-        """
-        Criptografa a senha utilizando Bcrypt e salva no hash.
-        O gensalt() adiciona um valor aleatório para evitar ataques de Rainbow Tables.
-        """
-        # Converte a string da senha para bytes e aplica o hash
-        self.password_hash = hashpw(password.encode('utf-8'), gensalt()).decode('utf-8')
-
-    def check_password(self, password):
-        """
-        Verifica se a senha fornecida corresponde ao hash armazenado.
-        Retorna True se a senha estiver correta, False caso contrário.
-        """
-        return checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
-    
     def to_dict(self):
         """
-        Converte o objeto User em um dicionário para retorno em JSON.
-        Exclui o campo password_hash por segurança.
+        Converte o objeto User em um dicionário compatível com o type do React.
         """
         return {
             'id': self.id,
-            'username': self.username,
-            'isAdmin': self.is_admin,
+            'email': self.email,
+            'name': self.name,
+            'document': self.document,
+            'role': self.role,
+            'isAdmin': self.role == 'admin',
+            'created_at': self.created_at.isoformat() if self.created_at else None
         }

@@ -1,20 +1,21 @@
 // frontend/src/contexts/AuthContext.tsx
 "use client";
 
-import { axios_api } from "@/api/axios_api";
 import { createContext, ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { axios_api } from "@/api/axios_api";
+import { supabase } from "@/api/supabase";
 
 // ==================================================
 // TIPO USUÁRIO (compatível com backend Flask)
 // ==================================================
 export type User = {
-  id: number;
+  id: string;          // ATUALIZADO: Agora é string (UUID do Supabase)
   name: string;
   email: string;
   document?: string;
-  role: string;        // 'admin' ou 'operator'
+  role: string;        // 'admin' ou 'collaborator'
   isAdmin: boolean;    // permissão de administrador
   created_at?: string;
 };
@@ -24,136 +25,150 @@ export type User = {
 // ==================================================
 type AuthContextType = {
   user: User | null;
-  usersList: User[];                       // lista de colaboradores
+  usersList: User[];
   login: (email: string, password: string) => Promise<User | null>;
   register: (userData: RegisterData) => Promise<User | null>;
   logout: () => void;
-  getUsers: () => Promise<void>;           // busca todos os usuários
-  registerUser: (userData: any) => Promise<void>; // para formulário de colaborador
+  getUsers: () => Promise<void>;
+  registerUser: (userData: RegisterData) => Promise<void>; 
   isAuthenticated: boolean;
   isLoading: boolean;
 };
 
-// Dados necessários para registro
 type RegisterData = {
   name: string;
   email: string;
   password: string;
   document?: string;
-  role?: string;
 };
 
-// Cria o contexto (inicialmente vazio)
 export const AuthContext = createContext({} as AuthContextType);
 
 // ==================================================
-// PROVIDER: encapsula a lógica de autenticação
+// PROVIDER
 // ==================================================
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUserState] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Carrega o usuário e o token do localStorage ao iniciar
+  // ==========================================
+  // BUSCA O PERFIL DO BANCO DE DADOS (FLASK)
+  // ==========================================
+  const fetchUserProfile = async (): Promise<User | null> => {
+    try {
+      // O axios_api vai mandar o token do Supabase automaticamente
+      const response = await axios_api.get('/auth/me');
+      const userData = response.data;
+      setUser(userData);
+      return userData;
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error);
+      setUser(null);
+      return null;
+    }
+  };
+
+  // ==========================================
+  // ESCUTA A SESSÃO DO SUPABASE AO ABRIR O APP
+  // ==========================================
   useEffect(() => {
-    const loadUser = () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const savedUser = localStorage.getItem('smart_inventory_user');
-          const token = localStorage.getItem('smart_inventory_token');
-          if (savedUser && token) {
-            setUserState(JSON.parse(savedUser));
-          }
-        } catch (error) {
-          console.error('Erro ao carregar usuário:', error);
-        } finally {
-          setIsLoading(false);
-        }
+    // 1. Checa se já tem alguém logado ao carregar
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        fetchUserProfile().finally(() => setIsLoading(false));
       } else {
         setIsLoading(false);
       }
-    };
-    loadUser();
+    });
+
+    // 2. Fica escutando mudanças de login/logout em tempo real
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchUserProfile();
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Atualiza o localStorage quando o usuário muda
-  const setUser = (newUser: User | null) => {
-    setUserState(newUser);
-    if (typeof window !== 'undefined') {
-      if (newUser) {
-        localStorage.setItem('smart_inventory_user', JSON.stringify(newUser));
-      } else {
-        localStorage.removeItem('smart_inventory_user');
-        localStorage.removeItem('smart_inventory_token');
-      }
-    }
-  };
-
   // ==========================================
-  // LOGOUT
-  // ==========================================
-  const logout = () => {
-    setUser(null);
-    toast.success('Logout realizado com sucesso!');
-    router.push('/login');
-  };
-
-  // ==========================================
-  // LOGIN (usa API Flask)
+  // LOGIN DIRETO NO SUPABASE
   // ==========================================
   async function login(email: string, password: string): Promise<User | null> {
     try {
-      const response = await axios_api.post('/auth/login', { email, password });
-      const { access_token, user: userData } = response.data;
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('smart_inventory_token', access_token);
-      }
-
-      // Converte role para isAdmin (compatibilidade com frontend antigo)
-      const userWithAdmin = {
-        ...userData,
-        isAdmin: userData.role === 'admin'
-      };
-
-      setUser(userWithAdmin);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) throw error;
+      
+      // Busca os dados da pessoa no banco de dados e retorna
+      const userData = await fetchUserProfile();
       toast.success('Login realizado com sucesso!');
-      return userWithAdmin;
-    } catch (error: unknown) {
+      return userData;
+
+    } catch (error: any) {
       console.error('Erro no login:', error);
-      const axiosError = error as { response?: { data?: { msg?: string } } };
-      const message = axiosError.response?.data?.msg || 'Credenciais inválidas';
-      toast.error(message);
+      toast.error('Email ou senha incorretos');
       return null;
     }
   }
 
   // ==========================================
-  // REGISTRO DE NOVO USUÁRIO (colaborador)
+  // REGISTRO DE NOVO DONO (Admin Automático)
   // ==========================================
   async function register(userData: RegisterData): Promise<User | null> {
     try {
-      const response = await axios_api.post('/auth/register', userData);
-      const { user: newUser } = response.data;
-      toast.success('Usuário criado com sucesso!');
-      return newUser;
-    } catch (error: unknown) {
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: { 
+            name: userData.name,
+            document: userData.document || null
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success('Conta criada com sucesso!');
+      // Quando logar, o useEffect vai buscar o perfil automaticamente
+      const profile = await fetchUserProfile();
+      return profile;
+
+    } catch (error: any) {
       console.error('Erro no registro:', error);
-      const axiosError = error as { response?: { data?: { msg?: string } } };
-      const message = axiosError.response?.data?.msg || 'Erro ao criar usuário';
-      toast.error(message);
+      toast.error(error.message || 'Erro ao criar conta');
       return null;
     }
   }
 
   // ==========================================
-  // BUSCA TODOS OS USUÁRIOS (para lista de colaboradores)
+  // REGISTRA UM COLABORADOR (Via Backend Flask)
+  // ==========================================
+  const registerUser = async (userData: RegisterData) => {
+    try {
+      // Chama a rota protegida que nós criamos no Flask
+      await axios_api.post('/auth/collaborator', userData);
+      toast.success('Colaborador adicionado com sucesso!');
+      await getUsers(); // atualiza a lista da tela
+    } catch (error: any) {
+      console.error('Erro ao adicionar colaborador:', error);
+      toast.error(error.response?.data?.message || 'Erro ao adicionar colaborador');
+      throw error;
+    }
+  };
+
+  // ==========================================
+  // BUSCA TODOS OS USUÁRIOS
   // ==========================================
   const getUsers = useCallback(async () => {
     try {
+      // Nota: Certifique-se de que a rota /users exista no seu Flask para listar todos
       const response = await axios_api.get('/users');
-      // Garante que response.data seja um array
       const users = Array.isArray(response.data) ? response.data : response.data.users ?? [];
       setUsersList(users);
     } catch (error) {
@@ -163,23 +178,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-  // REGISTRA UM COLABORADOR (usado no formulário)
+  // LOGOUT NO SUPABASE
   // ==========================================
-  const registerUser = async (userData: any) => {
-    try {
-      await axios_api.post('/users', userData);
-      toast.success('Colaborador adicionado com sucesso!');
-      await getUsers(); // atualiza a lista automaticamente
-    } catch (error) {
-      console.error('Erro ao adicionar colaborador:', error);
-      toast.error('Erro ao adicionar colaborador');
-      throw error;
-    }
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    toast.success('Logout realizado com sucesso!');
+    router.push('/login');
   };
 
-  // ==========================================
-  // VALOR DO CONTEXTO
-  // ==========================================
   return (
     <AuthContext.Provider
       value={{

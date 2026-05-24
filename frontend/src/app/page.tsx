@@ -23,32 +23,32 @@ const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 
 export default function DashboardPage() {
 
-  const { user } = useAuthContext();
+  const { user, logout } = useAuthContext();
   const { products, getProducts, isLoading, expiredProducts, nearExpiryProducts, validProducts, financialRisk } = useProductsContext();
   const router = useRouter();
   const riskyProducts = [...expiredProducts, ...nearExpiryProducts];
 
 
-  // useEffect(() => {
-  //   getProducts();
-  // }, []);
+  useEffect(() => {
+    getProducts();
+  }, []);
 
-  // // Função auxiliar para obter nome do produto pelo ID
-  // const getProductName = (productId: string) =>
-  //   products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
+  // Função auxiliar para obter nome do produto pelo ID
+  const getProductName = (productId: string) =>
+    products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
 
   const handleLogout = () => {
     // Implementar logout (limpar token, redirecionar)
-    router.push('/login');
+    logout();
   };
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex min-h-screen items-center justify-center text-slate-800 bg-slate-50">
-  //       <p className="animate-pulse text-lg font-medium">Carregando dashboard...</p>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-800 bg-slate-50">
+        <p className="animate-pulse text-lg font-medium">Carregando dashboard...</p>
+      </div>
+    );
+  }
 
   const pieData = [
     { name: 'Válidos', value: validProducts.length },

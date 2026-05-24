@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuthContext } from "@/hooks/useAuthContext"
+import { LogOut } from "lucide-react";
 
 export default function Profile() {
     const { user, logout } = useAuthContext();
@@ -44,26 +45,28 @@ export default function Profile() {
     return (
         <div className="min-h-[calc(100vh-60px)] w-full bg-slate-100 p-4 sm:p-8 flex justify-center items-start font-sans">
             <div className="w-full max-w-4xl flex flex-col mt-2 sm:mt-6 gap-6">
-                
+
                 {/* Cabeçalho da Página */}
                 <div className="flex justify-between items-center bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <h2 className="font-bold text-slate-800 text-2xl sm:text-3xl">Meu Perfil</h2>
-                    <button 
+                    <button
                         onClick={logout}
-                        className="bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold py-2 px-5 rounded-lg transition-colors duration-200"
+                        className="inline-flex items-center gap-2 rounded-lg bg-red-50 border border-red-100 px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-100 active:scale-95"
                     >
+                        <LogOut size={16} />
                         Sair
                     </button>
+
                 </div>
 
                 {/* Bloco Único que engloba Dados Pessoais e Senha (Agora com largura máxima total) */}
                 <div className="w-full flex flex-col p-5 sm:p-8 bg-white rounded-xl shadow-sm border border-slate-200">
-                    
+
                     {/* Subcabeçalho: Dados Pessoais */}
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="font-bold text-slate-800 text-xl">Dados Pessoais</h3>
                         {!isEditing ? (
-                            <button 
+                            <button
                                 onClick={() => setIsEditing(true)}
                                 className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                             >
@@ -71,13 +74,13 @@ export default function Profile() {
                             </button>
                         ) : (
                             <div className="flex gap-3">
-                                <button 
+                                <button
                                     onClick={() => setIsEditing(false)}
                                     className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                                 >
                                     Cancelar
                                 </button>
-                                <button 
+                                <button
                                     onClick={handleSave}
                                     className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm shadow-blue-600/30"
                                 >
@@ -93,11 +96,11 @@ export default function Profile() {
                         <InputField label="E-mail" name="email" value={formData.email} isEditing={isEditing} onChange={handleInputChange} type="email" />
                         <InputField label="Documento" name="document" value={formData.document} isEditing={isEditing} onChange={handleInputChange} />
                     </div>
-                    
+
                     {/* Linha Divisória de Seção interna */}
                     <div className="mt-8 pt-6 border-t border-slate-100">
                         {!isPasswordOpen ? (
-                            <button 
+                            <button
                                 onClick={() => setIsPasswordOpen(true)}
                                 className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
                             >
@@ -106,19 +109,19 @@ export default function Profile() {
                         ) : (
                             <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
                                 <h4 className="font-bold text-slate-800 text-lg mb-2">Mudar Senha</h4>
-                                
+
                                 <InputField label="Senha Atual" name="currentPassword" type="password" value={passwordData.currentPassword} isEditing={true} onChange={handlePasswordChange} />
                                 <InputField label="Nova Senha" name="newPassword" type="password" value={passwordData.newPassword} isEditing={true} onChange={handlePasswordChange} />
                                 <InputField label="Confirmar Nova" name="confirmPassword" type="password" value={passwordData.confirmPassword} isEditing={true} onChange={handlePasswordChange} />
-                                
+
                                 <div className="flex justify-end gap-3 mt-4">
-                                    <button 
+                                    <button
                                         onClick={() => setIsPasswordOpen(false)}
                                         className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors duration-200"
                                     >
                                         Cancelar
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleSavePassword}
                                         className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm shadow-blue-600/30"
                                     >
@@ -157,8 +160,8 @@ function InputField({ label, name, value, isEditing, onChange, type = "text" }: 
                 onChange={onChange}
                 disabled={!isEditing}
                 className={`flex-1 min-h-[44px] px-4 rounded-lg w-full outline-none transition-all duration-200 text-base
-                    ${isEditing 
-                        ? 'bg-white border-2 border-blue-500 text-slate-800 shadow-sm focus:ring-4 focus:ring-blue-500/20' 
+                    ${isEditing
+                        ? 'bg-white border-2 border-blue-500 text-slate-800 shadow-sm focus:ring-4 focus:ring-blue-500/20'
                         : 'bg-slate-50 border-2 border-transparent text-slate-600 cursor-default'
                     }
                 `}

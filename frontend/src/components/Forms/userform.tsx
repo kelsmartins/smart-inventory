@@ -18,8 +18,10 @@ export function UserForm({
   isInInventoryPage,
   ShowCollaboratorForm,
 }: Props) {
-  const { register, login } = useAuthContext();
+  // Puxamos as duas funções distintas do nosso novo Contexto
+  const { register, registerUser } = useAuthContext();
   const router = useRouter();
+  
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -36,41 +38,40 @@ export function UserForm({
       toast.error("Preencha todos os campos.");
       return;
     }
-    if (password.length < 4) {
-      toast.error("A senha deve ter no mínimo 4 caracteres.");
+    
+    // ATUALIZAÇÃO: Supabase exige no mínimo 6 caracteres por padrão
+    if (password.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Registra o usuário na API Flask
-      const newUser = await register({
-        name,
-        email,
-        password,
-        document,
-        role: isAdmin ? 'admin' : 'operator'
-      });
-
-      if (newUser) {
-        if (isInInventoryPage === false) {
-          // Se for cadastro de conta, faz login automático
-          const loggedInUser = await login(email, password);
-          if (loggedInUser) {
-            toast.success("Conta criada com sucesso!");
-            router.push("/");
-          }
-        } else {
-          toast.success("Colaborador adicionado!");
-          if (ShowCollaboratorForm) {
-            ShowCollaboratorForm();
-          }
+      if (isInInventoryPage === false) {
+        // 1. FLUXO TELA PÚBLICA: Dono criando conta (Vira Admin)
+        const newUser = await register({ name, email, password, document });
+        
+        if (newUser) {
+          // Como o Supabase já loga automaticamente ao usar o register, não precisamos chamar login()!
+          router.push("/");
+        }
+      } else {
+        // 2. FLUXO INTERNO: Admin adicionando funcionário (Vira Collaborator)
+        // O Flask faz o trabalho sujo e garante que o Admin não seja deslogado
+        await registerUser({ name, email, password, document });
+        
+        // Limpa o formulário após criar com sucesso
+        setForm({ name: "", email: "", password: "", document: "" });
+        
+        if (ShowCollaboratorForm) {
+          ShowCollaboratorForm(); // Fecha o modal/formulário
         }
       }
     } catch (error) {
       console.error("Erro ao criar conta:", error);
-      toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
+      // Obs: O toast de erro já está sendo disparado dentro do próprio AuthContext,
+      // então não precisamos duplicar mensagens genéricas aqui.
     } finally {
       setIsLoading(false);
     }
@@ -123,14 +124,14 @@ export function UserForm({
 
         <div>
           <label htmlFor="document" className="mb-1 block text-sm font-semibold text-slate-700">
-            CPF/CNPJ da Empresa *
+            CPF/CNPJ *
           </label>
           <input
             id="document"
             type="text"
             value={form.document}
             onChange={(e) => setForm({ ...form, document: e.target.value })}
-            placeholder="Apenas números"
+            placeholder="Apenas números ou com pontuação"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
             required
           />
@@ -145,7 +146,7 @@ export function UserForm({
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="Mínimo 4 caracteres"
+            placeholder="Mínimo 6 caracteres"
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
             required
           />
@@ -157,7 +158,7 @@ export function UserForm({
           className="w-full rounded-xl bg-blue-600 px-4 py-3 mt-4 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-sm shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading 
-            ? "Cadastrando..." 
+            ? "Processando..." 
             : (isInInventoryPage === false ? "Finalizar Cadastro" : "Cadastrar usuário")}
         </button>
       </form>

@@ -1,15 +1,12 @@
 from flask import Flask, jsonify
 from flask_migrate import Migrate
-# from flask_jwt_extended import JWTManager  # <-- JWT COMENTADO AQUI
 from flask_cors import CORS
 
 from app.config import Config
-
 from app.extensions.db import db
 
-# Inicializa as outras extensões
+# Inicializa as extensões
 migrate = Migrate()
-# jwt = JWTManager() # <-- JWT COMENTADO AQUI
 
 def create_app():
     app = Flask(__name__)
@@ -18,7 +15,6 @@ def create_app():
     # Vincula extensões
     db.init_app(app)
     migrate.init_app(app, db)
-    # jwt.init_app(app) # <-- JWT COMENTADO AQUI
     
     # CORS Agressivo: Libera o React
     CORS(app, resources={r"/*": {"origins": "*"}})

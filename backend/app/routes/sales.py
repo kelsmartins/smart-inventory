@@ -4,18 +4,18 @@ from app.models.sale import Sale, SaleItem
 from app.models.product import Product
 from app.models.movement import Movement, MovementType
 from app.services.fefo_service import FEFOService
-from flask_jwt_extended import jwt_required, get_jwt_identity
+
+from app.auth_middleware import require_supabase_auth
 
 sales_bp = Blueprint('sales', __name__)
 
 @sales_bp.route('/', methods=['GET'])
-@jwt_required()
-def get_sales():
+@require_supabase_auth
+def get_sales(user_id):
     """
     Lista todas as vendas realizadas pelo usuário logado.
     Retorno: Detalhes da venda, valor total e lista de itens vendidos.
     """
-    user_id = get_jwt_identity()
     sales = Sale.query.filter_by(user_id=user_id).all()
     
     result = []
@@ -37,14 +37,13 @@ def get_sales():
     return jsonify(result), 200
 
 @sales_bp.route('/', methods=['POST'])
-@jwt_required()
-def create_sale():
+@require_supabase_auth
+def create_sale(user_id):
     """
     Processa uma nova venda, aplicando a lógica FEFO para baixa de estoque.
     Requisito: JSON com lista de 'items' contendo 'product_id' e 'quantity'.
     """
     data = request.get_json()
-    user_id = get_jwt_identity()
     
     if not data or 'items' not in data or not data['items']:
         return jsonify({"message": "Sale items are required"}), 400

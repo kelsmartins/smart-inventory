@@ -2,41 +2,42 @@ import os
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models.user import User
-from flask_jwt_extended import jwt_required, get_jwt_identity
 
 # Necessário para a rota de criar colaborador
 from supabase import create_client, Client
+
+from app.auth_middleware import require_supabase_auth
 
 auth_bp = Blueprint('auth', __name__)
 
 # ====================//  GET ME (Perfil do Usuário)  //========================
 @auth_bp.route('/me', methods=['GET'], strict_slashes=False)
-@jwt_required()
-def get_me():
-    """
-    Retorna os dados públicos do banco (nome, documento, role) do usuário logado.
-    O React manda o Token do Supabase, o Flask lê o ID que está dentro dele.
-    """
-    # No JWT do Supabase, o ID (UUID) fica armazenado automaticamente na identidade
-    user_id = get_jwt_identity() 
+@require_supabase_auth
+def get_me(user_id):
     
-    user = User.query.get(user_id)
+    # Busca o usuário usando o user_id que já veio de presente pelo Guardião
+    user = User.query.filter_by(id=user_id).first()
+    
     if not user:
-        return jsonify({"message": "Usuário não encontrado no banco"}), 404
-    
-    return jsonify(user.to_dict()), 200
+        return jsonify({'msg': 'Usuário não encontrado no banco local.'}), 404
+        
+    return jsonify({
+        'id': user.id,
+        'email': user.email,
+        'role': user.role,
+        'name': user.name
+    }), 200
 
 
 # ====================//  CRIAR COLABORADOR (Apenas Admin)  //========================
 @auth_bp.route('/collaborator', methods=['POST'], strict_slashes=False)
-@jwt_required()
-def create_collaborator():
+@require_supabase_auth
+def create_collaborator(user_id):
     """
     Rota protegida onde o Admin cria um novo funcionário para o sistema.
     """
-    # 1. Verifica se quem está tentando criar é realmente um Admin
-    admin_id = get_jwt_identity()
-    admin_user = User.query.get(admin_id)
+    # 1. Verifica se quem está tentando criar é realmente um Admin pelo ID do Supabase
+    admin_user = User.query.filter_by(id=user_id).first()
     
     if not admin_user or admin_user.role != 'admin':
         return jsonify({"message": "Acesso negado. Apenas administradores podem criar contas."}), 403

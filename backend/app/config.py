@@ -8,13 +8,7 @@ class Config:
         'DATABASE_URL',
         'sqlite:///instance/validation.db'
     )
-
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    JWT_SECRET_KEY = os.getenv(
-        'JWT_SECRET_KEY',
-        'fallback-dev-key'
-    )
-
+    
     SUPABASE_URL = os.getenv('SUPABASE_URL')
     SUPABASE_KEY = os.getenv('SUPABASE_KEY')

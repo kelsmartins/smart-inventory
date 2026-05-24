@@ -4,25 +4,34 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthContext } from "@/hooks/useAuthContext";
-import { toast } from "sonner";
 import { Package } from "lucide-react";
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useAuthContext();
+  const { login } = useAuthContext();
   const router = useRouter();
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // pequena trava de segurança pra não enviar formulário vazio
+    if (!email || !password) return;
+
     setIsLoading(true);
     
     try {
+      // supabase faz a checagem, e o Contexto já exibe as mensagens de erro/sucesso
       const user = await login(email, password);
+      
       if (user) {
+        // redireciona para o Dashboard em caso de sucesso
         router.push('/');
       }
+    } catch (error) {
+        console.error("Erro inesperado no login:", error);
     } finally {
       setIsLoading(false);
     }

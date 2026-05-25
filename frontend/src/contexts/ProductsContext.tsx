@@ -2,46 +2,8 @@
 import { createContext, useState, useMemo } from "react";
 import { axios_api } from "@/api/axios_api";
 import { ProductService } from '@/services/product-service';
-import { ProductType, ProductStatus } from "@/types/ProductType";
+import { ProductType } from "@/types/ProductType";
 import { toast } from "sonner";
-
-// ---------------------------------------------------------
-// 1. CONFIGURAÇÕES E UTILITÁRIOS
-// ---------------------------------------------------------
-
-// Função para calcular o status baseado na data de validade (Blindada)
-export function calculateProductStatus(expiryDate: string): ProductStatus {
-    if (!expiryDate) return 'valid';
-
-    // 1. Pega o exato momento de hoje e zera as horas (horário local)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    let expDate: Date;
-
-    try {
-        // 2. Arranca a data limpa (ex: "2026-05-25") ignorando qualquer fuso horário
-        const datePart = expiryDate.split('T')[0];
-        const [year, month, day] = datePart.split('-');
-
-        // 3. Monta a data no horário local para a matemática bater exato com o 'today'
-        expDate = new Date(Number(year), Number(month) - 1, Number(day));
-    } catch (e) {
-        // Fallback de segurança
-        expDate = new Date(expiryDate);
-    }
-
-    // 4. Calcula a diferença real em dias
-    const diffTime = expDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    // Regras
-    if (diffDays < 0) return 'expired';      // Ontem ou antes
-    if (diffDays <= 7) return 'critical';    // De hoje (0) até 7 dias
-    if (diffDays <= 30) return 'alert';      // De 8 a 30 dias
-
-    return 'valid';                          // 31+ dias
-}
 
 // ---------------------------------------------------------
 // 2. INTERFACES E TIPAGENS
@@ -67,9 +29,9 @@ type ProductsContextType = {
     alertProducts: ProductType[];
     validProducts: ProductType[];
     financialRisk: number;
-    deleteProduct: (id: number | string) => Promise<void>;
+    deleteProduct: (id: number) => Promise<void>;
     getProductToFillForm: (barCode: string) => Promise<BlueSoftResponse>;
-    putOnSale: (id: number | string) => Promise<void>;
+    putOnSale: (id: number) => Promise<void>;
     expiringProducts: ProductType[];
     riskyProducts: ProductType[];
 };
@@ -86,6 +48,7 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
     const [isLoading, setIsLoading] = useState(true);
 
     const {
+        calculateProductStatus,
         expiredProducts,
         criticalProducts,
         alertProducts,
@@ -93,8 +56,15 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         financialRisk
     } = useMemo(() => ProductService(products), [products]);
 
-      const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
-      const [expiringProducts, setExpiringProducts] = useState<ProductType[]>(criticalProducts.concat(alertProducts));
+    const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
+
+    // Array puramente numérico para guardar os IDs
+    const [idsResolvidos, setIdsResolvidos] = useState<number[]>([]);
+    
+    // Variável super limpa (sem split!)
+    const expiringProducts = [...criticalProducts, ...alertProducts].filter(
+        (product) => !idsResolvidos.includes(product.id as number)
+    );
 
     // Funções API Flask (CRUD PRINCIPAL)
     async function getProducts() {
@@ -109,13 +79,12 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
                 if (product.batches && Array.isArray(product.batches)) {
                     for (const batch of product.batches) {
                         transformedProducts.push({
-                            id: `${product.id}-${batch.id}`,
+                            id: product.id, // <-- Apenas Number direto
                             name: product.name,
                             barcode: product.barcode,
                             category: product.category || '',
                             expiryDate: batch.expiry_date,
                             price: product.price,
-                            // Usa a função para calcular o status real na hora
                             status: calculateProductStatus(batch.expiry_date),
                             quantity: batch.quantity,
                             batch: batch.id
@@ -123,7 +92,7 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
                     }
                 } else {
                     transformedProducts.push({
-                        id: product.id,
+                        id: product.id, // <-- Apenas Number direto
                         name: product.name,
                         barcode: product.barcode,
                         category: product.category || '',
@@ -151,13 +120,12 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
             const savedData = response.data;
 
             const transformedProduct: ProductType = {
-                id: `${savedData.id}-${savedData.batch}`,
+                id: savedData.id, // <-- Apenas Number direto
                 name: savedData.name,
                 barcode: savedData.barcode,
                 category: savedData.category || '',
                 expiryDate: savedData.expiryDate,
                 price: savedData.price,
-                // Define o status do produto novo na hora de salvar
                 status: calculateProductStatus(savedData.expiryDate),
                 quantity: savedData.quantity,
                 batch: savedData.batch
@@ -173,19 +141,13 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         }
     }
 
-    async function deleteProduct(id: number | string) {
+    async function deleteProduct(id: number) {
         try {
-            const productId = typeof id === 'string' ? parseInt(id.split('-')[0]) : id;
-
-            await axios_api.delete(`/products/${productId}`);
-            setProducts(currentProducts =>
-                currentProducts.filter(product => {
-                    const productProductId = typeof product.id === 'string'
-                        ? parseInt(product.id.split('-')[0])
-                        : product.id;
-                    return productProductId !== productId;
-                })
-            );
+            await axios_api.delete(`/products/${id}`);
+            
+            // Filtro direto, sem splits!
+            setProducts(currentProducts => currentProducts.filter(product => product.id !== id));
+            
             toast.success('Produto excluído com sucesso!');
         } catch (error: unknown) {
             console.error('Erro ao deletar produto:', error);
@@ -199,7 +161,7 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
             const response = await axios_api.get(`/products/barcode/${barCode}`);
             return response.data;
         } catch (error) {
-            console.error('Erro ao buscar produto por código de barras:', error);
+            console.error('Erro ao buscar produto:', error);
             return {
                 description: '',
                 avg_price: '0',
@@ -209,33 +171,25 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
     }
 
     // FUNCOES SECUNDARIAS
-    async function putOnSale(id: number | string) {
-    try {
-        await axios_api.put(`/products/expiring/${id}`);
-        setProducts(currentProducts =>
-            currentProducts.map(product => {
-                const productProductId = typeof product.id === 'string'
-                    ? parseInt(product.id.split('-')[0])
-                    : product.id;
+    async function putOnSale(id: number) {
+        try {
+            await axios_api.put(`/products/expiring/${id}`);
+            
+            // Map direto, sem splits!
+            setProducts(currentProducts =>
+                currentProducts.map(product => product.id === id ? { ...product } : product)
+            );
 
-                return productProductId === id ? { ...product } : product;
-            })
-        );
-        setExpiringProducts(prev => prev.filter(product => {
-            const productProductId = typeof product.id === 'string'
-                ? parseInt(product.id.split('-')[0])
-                : product.id;
-            return productProductId !== id;
-        }));
+            // Adiciona o ID na lista de resolvidos para esconder do banner
+            setIdsResolvidos(prev => [...prev, id]);
 
-        toast.success('Produto promovido com sucesso!');
+            toast.success('Produto promovido com sucesso!');
 
-    } catch (error) {
-        console.error('Erro ao promover produto:', error);
-        toast.error('Erro ao promover produto');
+        } catch (error) {
+            console.error('Erro ao promover produto:', error);
+            toast.error('Erro ao promover produto');
+        }
     }
-}
-
 
     return (
         <ProductsContext.Provider value={{

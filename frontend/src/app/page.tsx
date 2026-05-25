@@ -8,15 +8,14 @@
 // ==================================================
 
 import { useRouter } from 'next/navigation';
-import { Package, AlertTriangle, XCircle, DollarSign, LogOut, Check, Percent, ClockAlert } from 'lucide-react';
+import { Package, AlertTriangle, XCircle, DollarSign, LogOut, Check } from 'lucide-react';
 import Link from 'next/link';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useProductsContext } from '@/hooks/useProductsContext';
 import { useEffect, useState } from 'react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useAuthContext } from '@/hooks/useAuthContext';
-import { ExpiringProductsReview } from '@/components/Expiring Products/ExpiringProductsReview';
-import { ProductType } from '@/types/ProductType';
+import { ExpiringAlertBanner } from '@/components/Expiring Products/ExpiringAlertBanner';
 
 // Cores atualizadas para combinar com a paleta moderna do Tailwind (green-500, amber-500, red-500)
 const COLORS = ['#22c55e', '#eab308', '#ef4444', '#64748b'];
@@ -26,6 +25,7 @@ export default function DashboardPage() {
   const { products, getProducts, isLoading, expiredProducts, criticalProducts, alertProducts, validProducts, financialRisk } = useProductsContext();
   const router = useRouter();
   const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
+  const expiringProducts = [...criticalProducts, ...alertProducts];
 
 
   useEffect(() => {
@@ -78,7 +78,9 @@ export default function DashboardPage() {
         </header>
 
         {/* Banner de Atenção (Atualizado para harmonizar com a paleta) */}
-        <ExpiryAlertBanner  ExpiringProductsData={[]}/>
+        {expiringProducts.length > 0 && 
+          <ExpiringAlertBanner  ExpiringProductsData={expiringProducts}/>
+        }
         
 
         {/* Gráfico em pizza e Cards */}
@@ -246,40 +248,3 @@ export default function DashboardPage() {
 }
 
 
-type ExpiryAlertBannerProps = {
-  ExpiringProductsData: ProductType[];
-}
-export function ExpiryAlertBanner({ExpiringProductsData}: ExpiryAlertBannerProps){
-
-  const [showModal, setShowModal] = useState(false);
-
-  return (
-    <div className="rounded-xl border border-blue-500 bg-white p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
-          
-          <div className="flex items-start gap-3.5">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl shrink-0 mt-0.5 shadow-sm">
-              <ClockAlert size={22} className="text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-slate-800">Atenção com a validade!</h3>
-              <p className="text-sm text-slate-500 mt-0.5 font-medium">
-                Estes produtos estão prestes a vencer. Escolha o que fazer para evitar perdas no estoque.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setShowModal(true)}
-            className="whitespace-nowrap inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:scale-95 w-full sm:w-auto"
-          >
-            <Percent size={16} />
-            Aplicar Promoções
-          </button>
-
-          {showModal && 
-            <ExpiringProductsReview onClose={()=>setShowModal(false)} ExpiringProductsData={ExpiringProductsData}/>
-          }
-
-        </div>
-  )
-}

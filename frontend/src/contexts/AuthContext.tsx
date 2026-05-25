@@ -4,7 +4,6 @@ import { createContext, ReactNode, useState, useEffect, useCallback } from "reac
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { axios_api } from "@/api/axios_api";
-import { supabase } from "@/api/supabase";
 
 // ==================================================
 // TIPO USUÁRIO
@@ -69,46 +68,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // ==========================================
-  // ESCUTA A SESSÃO DO SUPABASE AO ABRIR O APP
+  // CARREGA A SESSÃO AO INICIAR O APP
   // ==========================================
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchUserProfile().finally(() => setIsLoading(false));
-      } else {
-        setIsLoading(false);
+    const initAuth = async () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('smart_inventory_token');
+        if (token) {
+          await fetchUserProfile();
+        }
       }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchUserProfile();
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+      setIsLoading(false);
+    };
+    initAuth();
   }, []);
 
   // ==========================================
-  // LOGIN DIRETO NO SUPABASE
+  // LOGIN VIA API FLASK
   // ==========================================
   async function login(email: string, password: string): Promise<User | null> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const response = await axios_api.post('/auth/login', { email, password });
+      const { access_token, user: userData } = response.data;
       
-      if (error) throw error;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('smart_inventory_token', access_token);
+      }
       
-      const response = await axios_api.get('/auth/me');
-      const userData = response.data;
       setUser(userData);
       toast.success('Login realizado com sucesso!');
       return userData; 
-
+    
     } catch (error: any) {
       console.error('❌ ERRO NO LOGIN:', error);
-      toast.error('Email ou senha incorretos ou erro de servidor.');
+      const message = error.response?.data?.message || 'Email ou senha incorretos';
+      toast.error(message);
       return null;
     }
   }
@@ -165,10 +159,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-  // LOGOUT NO SUPABASE
+  // LOGOUT
   // ==========================================
   const logout = async () => {
-    await supabase.auth.signOut();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('smart_inventory_token');
+      localStorage.removeItem('smart_inventory_user');
+    }
     setUser(null);
     toast.success('Logout realizado com sucesso!');
     router.push('/login');

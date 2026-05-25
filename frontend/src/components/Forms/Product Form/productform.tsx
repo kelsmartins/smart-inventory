@@ -41,7 +41,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
         const formatedDate = `${year}-${month}-${day}`;
 
         const productData = {
-            id: crypto.randomUUID(),
+            id: Number(crypto.randomUUID()),
             barcode: barCode,
             name: productName,
             batch: batch,
@@ -51,7 +51,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
             quantity: parseInt(quantity),
         };
 
-        addProduct(productData);
+         addProduct(productData);
         showProductForm();
     }
 
@@ -101,7 +101,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
                                             console.log(response)
 
                                             const productToFill: ProductType = {
-                                                id: '',
+                                                id: 0,
                                                 name: response.description,
                                                 barcode: String(response.gtin),
                                                 category: response.category?.description || '',

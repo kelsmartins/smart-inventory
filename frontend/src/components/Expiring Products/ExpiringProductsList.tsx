@@ -3,7 +3,7 @@ import { ExpiringProductsItem } from "./ExpiringProductsItem"
 
 type ExpiringProductsListProps = {
     expiringData: ProductType[];
-    putOnSale: (id: number | string) => Promise<void>;
+    putOnSale: (id: number) => Promise<void>;
 }
 
 export function ExpiringProductsList({ expiringData, putOnSale }: ExpiringProductsListProps) {

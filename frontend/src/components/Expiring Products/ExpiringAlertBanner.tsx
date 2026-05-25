@@ -37,7 +37,11 @@ export function ExpiringAlertBanner({ExpiringProductsData}: ExpiryAlertBannerPro
           </button>
 
           {showModal && 
-            <ExpiringProductsModal onClose={()=>setShowModal(false)} ExpiringProductsData={ExpiringProductsData} putOnSale={putOnSale}/>
+            <ExpiringProductsModal
+              onClose={() => setShowModal(false)}
+              ExpiringProductsData={ExpiringProductsData}
+              putOnSale={(id: number) => putOnSale(id)}
+            />
           }
 
         </div>

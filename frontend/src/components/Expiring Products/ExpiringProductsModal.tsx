@@ -5,7 +5,7 @@ import { ExpiringProductsList } from './ExpiringProductsList';
 type ExpiringProductsReviewProps = {
     onClose: () => void;
     ExpiringProductsData: ProductType[];
-    putOnSale: (id: number | string) => Promise<void>;
+    putOnSale: (id: number) => Promise<void>;
 }
 export function ExpiringProductsModal({ onClose, ExpiringProductsData, putOnSale }: ExpiringProductsReviewProps) {
     return (

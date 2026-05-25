@@ -31,8 +31,8 @@ export default function DashboardPage() {
   }, []);
 
   // Função auxiliar para obter nome do produto pelo ID
-  const getProductName = (productId: string) =>
-    products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
+  // const getProductName = (productId: string) =>
+  //   products.find(p => p.id === productId)?.name ?? 'Produto não encontrado';
 
   const handleLogout = () => {
     // Implementar logout (limpar token, redirecionar)

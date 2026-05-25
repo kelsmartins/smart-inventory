@@ -40,10 +40,12 @@ export default function CollaboratorsPage(){
                 }
             </div>
 
-            {/* Cabeçalho da Lista */}
+            {/* Cabeçalho da Lista - Larguras ajustadas para incluir Documento */}
             <div className="flex flex-row h-12 items-center px-6 bg-white border border-slate-200 rounded-t-xl border-b-0 shadow-sm text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0">
-                <span className="w-[40%] flex justify-start">Nome</span>
-                <span className="w-[35%] flex justify-start">E-mail</span>
+                <span className="w-[30%] flex justify-start">Nome</span>
+                <span className="w-[25%] flex justify-start">E-mail</span>
+                {/* Nova coluna de Documento */}
+                <span className="w-[20%] flex justify-start">Documento</span>
                 <span className="w-[15%] flex justify-start">Tipo de acesso</span>
                 <span className="w-[10%] flex justify-center">Ações</span>
             </div>
@@ -53,12 +55,17 @@ export default function CollaboratorsPage(){
                 {usersList.map((user) => (
                     <li key={user.id} className="flex flex-row h-16 items-center px-6 text-slate-600 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 shrink-0">
 
-                        <span className="w-[40%] flex justify-start font-medium text-slate-800">
+                        <span className="w-[30%] flex justify-start font-medium text-slate-800 truncate pr-4">
                             {user.name}
                         </span>
 
-                        <span className="w-[35%] flex justify-start truncate pr-4">
+                        <span className="w-[25%] flex justify-start truncate pr-4">
                             {user.email}
+                        </span>
+
+                        {/* Novo campo de Documento sendo renderizado */}
+                        <span className="w-[20%] flex justify-start truncate pr-4">
+                            {user.document || 'Não informado'}
                         </span>
 
                         <span className="w-[15%] flex justify-start">
@@ -81,6 +88,12 @@ export default function CollaboratorsPage(){
                         </div>
                     </li>
                 ))}
+                
+                {usersList.length === 0 && (
+                    <li className="p-8 text-center text-sm font-medium text-slate-400">
+                        Nenhum colaborador encontrado.
+                    </li>
+                )}
             </ul>
         </div>
     )

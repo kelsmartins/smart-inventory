@@ -1,4 +1,3 @@
-// frontend/src/contexts/AuthContext.tsx
 "use client";
 
 import { createContext, ReactNode, useState, useEffect, useCallback } from "react";
@@ -8,15 +7,15 @@ import { axios_api } from "@/api/axios_api";
 import { supabase } from "@/api/supabase";
 
 // ==================================================
-// TIPO USUÁRIO (compatível com backend Flask)
+// TIPO USUÁRIO
 // ==================================================
 export type User = {
-  id: string;          // ATUALIZADO: Agora é string (UUID do Supabase)
+  id: string; 
   name: string;
   email: string;
   document?: string;
-  role: string;        // 'admin' ou 'collaborator'
-  isAdmin: boolean;    // permissão de administrador
+  role: string; 
+  isAdmin: boolean;
   created_at?: string;
 };
 
@@ -58,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ==========================================
   const fetchUserProfile = async (): Promise<User | null> => {
     try {
-      // O axios_api vai mandar o token do Supabase automaticamente
       const response = await axios_api.get('/auth/me');
       const userData = response.data;
       setUser(userData);
@@ -74,7 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ESCUTA A SESSÃO DO SUPABASE AO ABRIR O APP
   // ==========================================
   useEffect(() => {
-    // 1. Checa se já tem alguém logado ao carregar
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         fetchUserProfile().finally(() => setIsLoading(false));
@@ -83,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // 2. Fica escutando mudanças de login/logout em tempo real
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         fetchUserProfile();
@@ -96,20 +92,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-// LOGIN DIRETO NO SUPABASE
-// ==========================================
-async function login(email: string, password: string): Promise<User | null> {
+  // LOGIN DIRETO NO SUPABASE
+  // ==========================================
+  async function login(email: string, password: string): Promise<User | null> {
     try {
-      console.log("1. Iniciando login no Supabase...");
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
       
-      console.log("2. Supabase logou! Token gerado:", data.session?.access_token ? "SIM" : "NÃO");
-
-      console.log("3. Indo buscar o perfil no Flask...");
       const response = await axios_api.get('/auth/me');
-      
       const userData = response.data;
       setUser(userData);
       toast.success('Login realizado com sucesso!');
@@ -117,12 +108,6 @@ async function login(email: string, password: string): Promise<User | null> {
 
     } catch (error: any) {
       console.error('❌ ERRO NO LOGIN:', error);
-      
-      if (error.response) {
-        console.error('❌ O FLASK REJEITOU POR CAUSA DISSO:', error.response.data);
-        alert("O Flask disse: " + JSON.stringify(error.response.data));
-      }
-      
       toast.error('Email ou senha incorretos ou erro de servidor.');
       return null;
     }
@@ -133,27 +118,18 @@ async function login(email: string, password: string): Promise<User | null> {
   // ==========================================
   async function register(userData: RegisterData): Promise<User | null> {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: { 
-            name: userData.name,
-            document: userData.document || null
-          }
-        }
-      });
-
-      if (error) throw error;
+      // Chama a API do Flask, que vai criar no Supabase e no banco de dados local
+      await axios_api.post('/auth/register', userData);
       
-      toast.success('Conta criada com sucesso!');
-      // Quando logar, o useEffect vai buscar o perfil automaticamente
-      const profile = await fetchUserProfile();
-      return profile;
+      toast.success('Conta criada com sucesso! Entrando...');
+
+      // Faz o login automaticamente com os dados recém-criados para iniciar a sessão
+      const loggedUser = await login(userData.email, userData.password);
+      return loggedUser;
 
     } catch (error: any) {
       console.error('Erro no registro:', error);
-      toast.error(error.message || 'Erro ao criar conta');
+      toast.error(error.response?.data?.message || 'Erro ao criar conta');
       return null;
     }
   }
@@ -163,7 +139,6 @@ async function login(email: string, password: string): Promise<User | null> {
   // ==========================================
   const registerUser = async (userData: RegisterData) => {
     try {
-      // Chama a rota protegida que nós criamos no Flask
       await axios_api.post('/auth/collaborator', userData);
       toast.success('Colaborador adicionado com sucesso!');
       await getUsers(); // atualiza a lista da tela
@@ -175,12 +150,12 @@ async function login(email: string, password: string): Promise<User | null> {
   };
 
   // ==========================================
-  // BUSCA TODOS OS USUÁRIOS
+  // BUSCA TODOS OS USUÁRIOS (COLABORADORES)
   // ==========================================
   const getUsers = useCallback(async () => {
     try {
-      // Nota: Certifique-se de que a rota /users exista no seu Flask para listar todos
-      const response = await axios_api.get('/users');
+      // Rota exata do backend
+      const response = await axios_api.get('/auth/collaborator');
       const users = Array.isArray(response.data) ? response.data : response.data.users ?? [];
       setUsersList(users);
     } catch (error) {

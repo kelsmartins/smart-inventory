@@ -15,20 +15,9 @@ def get_products():
     
     products = Product.query.all()
 
-    result = []
-    for p in products:
-        result.append({
-            "id": p.id,
-            "name": p.name,
-            "barcode": p.barcode,
-            "category": p.category,
-            "expiryDate": p.expiry_date.isoformat() if p.expiry_date else None,
-            "price": p.price,
-            "quantity": p.quantity,
-            "batch": p.batch_code
-        })
-    
+    result = [p.to_dict() for p in products]
     return jsonify(result), 200
+
 
 
 # ====================//  POST PRODUCT  //========================

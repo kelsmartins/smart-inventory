@@ -1,5 +1,5 @@
 from app.extensions.db import db
-from datetime import datetime
+import datetime
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -36,6 +36,22 @@ class Product(db.Model):
         """Representação textual do produto para debugging."""
         return f"<Product {self.name} - barcode: {self.barcode}>"
     
+    @property
+    def status(self):
+        """Retorna o status do produto baseado na data de validade."""
+        today = datetime.date.today()
+        days_left = (self.expiry_date - today).days
+
+        if days_left < 0:
+            return "expired"
+        elif days_left <= 7:
+            return "critical"
+        elif days_left <= 30:
+            return "alert"
+        else:
+            return "valid"
+
+    
     def to_dict(self):
         """
         Converte o objeto Product em um dicionário para retorno em JSON.
@@ -49,5 +65,6 @@ class Product(db.Model):
             'expiry_date': self.expiry_date.isoformat() if self.expiry_date else None,
             'price': self.price,
             'quantity': self.quantity,
-            'batch_code': self.batch_code
+            'batch_code': self.batch_code,
+            'status': self.status  # já inclui o status calculado
         }

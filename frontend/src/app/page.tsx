@@ -19,14 +19,13 @@ import { ExpiringProductsReview } from '@/components/Expiring Products/ExpiringP
 import { ProductType } from '@/types/ProductType';
 
 // Cores atualizadas para combinar com a paleta moderna do Tailwind (green-500, amber-500, red-500)
-const COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
-
+const COLORS = ['#22c55e', '#eab308', '#ef4444', '#64748b'];
 export default function DashboardPage() {
 
   const { user, logout } = useAuthContext();
-  const { products, getProducts, isLoading, expiredProducts, nearExpiryProducts, validProducts, financialRisk } = useProductsContext();
+  const { products, getProducts, isLoading, expiredProducts, criticalProducts, alertProducts, validProducts, financialRisk } = useProductsContext();
   const router = useRouter();
-  const riskyProducts = [...expiredProducts, ...nearExpiryProducts];
+  const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
 
 
   useEffect(() => {
@@ -52,7 +51,8 @@ export default function DashboardPage() {
 
   const pieData = [
     { name: 'Válidos', value: validProducts.length },
-    { name: 'Em alerta', value: nearExpiryProducts.length },
+    { name: 'Em alerta', value: alertProducts.length },
+    { name: 'Críticos', value: criticalProducts.length },
     { name: 'Vencidos', value: expiredProducts.length },
   ];
 
@@ -138,7 +138,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex flex-col">
                 <p className="text-sm font-medium text-slate-500">Em Alerta</p>
-                <p className="mt-1 text-3xl font-bold leading-none text-slate-800">{nearExpiryProducts.length}</p>
+                <p className="mt-1 text-3xl font-bold leading-none text-slate-800">{alertProducts.length}</p>
               </div>
             </div>
 
@@ -150,7 +150,7 @@ export default function DashboardPage() {
               <div className="flex flex-col">
                 <p className="text-sm font-medium text-slate-500">Críticos</p>
                 <p className="mt-1 text-3xl font-bold leading-none text-slate-800">
-                  {products.filter(b => b.status === 'critical').length}
+                  {criticalProducts.length}
                 </p>
               </div>
             </div>

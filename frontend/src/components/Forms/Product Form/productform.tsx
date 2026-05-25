@@ -12,7 +12,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
 
     const [barCode, setBarCode] = useState('');
     const [productName, setProductName] = useState('');
-    const [batch, setBatch] = useState('');
+    const [batch, setBatch] = useState('');       // se o tipo ProductType não tiver batch, ignore no envio
     const [category, setCategory] = useState('');
     const [productPrice, setProductPrice] = useState('');
     const [expiryDate, setExpiryDate] = useState(new Date());
@@ -29,30 +29,37 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
         setProductName(productToFill.name);
         setCategory(productToFill.category || '');
         setProductPrice(String(productToFill.price || ''));
+        // se o scanner retornar quantidade, pode setar também
+        if (productToFill.quantity) setQuantity(String(productToFill.quantity));
+        if (productToFill.batch) setBatch(productToFill.batch);
     }
 
-    function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    // ============================================================
+    // SUBMIT DO FORMULÁRIO – CORRIGIDO
+    // ============================================================
+    async function handleSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         const year = expiryDate.getFullYear();
         const month = String(expiryDate.getMonth() + 1).padStart(2, '0');
         const day = String(expiryDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
 
-        const formatedDate = `${year}-${month}-${day}`;
-
+        // Monta o objeto SEM o campo 'id' (o backend irá gerar)
+        // E SEM o campo 'batch' se o tipo ProductType não o possuir.
+        // Se o tipo ProductType tiver batch, descomente a linha abaixo.
         const productData = {
-            id: crypto.randomUUID(),
             barcode: barCode,
             name: productName,
-            batch: batch,
             category: category,
             price: parseFloat(productPrice),
-            expiryDate: formatedDate,
+            expiryDate: formattedDate,
             quantity: parseInt(quantity),
+            // batch: batch,   // descomente apenas se ProductType tiver a propriedade batch
         };
 
-        addProduct(productData);
-        showProductForm();
+        await addProduct(productData);   // aguarda a Promise
+        showProductForm();               // fecha o formulário
     }
 
     return (
@@ -93,15 +100,13 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
                                 onChange={(e) => setBarCode(e.target.value)}
                                 onKeyDown={async (e) => {
                                     if (e.key === 'Enter') {
-                                        e.preventDefault(); // Evita que a página recarregue se o input estiver dentro de um <form>
+                                        e.preventDefault();
                                         const response = await getProductToFillForm(barCode);
-
                                         if (response) {
-
-                                            console.log(response)
-
+                                            console.log(response);
+                                            // CORREÇÃO: id deve ser número (0 temporário)
                                             const productToFill: ProductType = {
-                                                id: '',
+                                                id: 0,   // número (back-end gerará o real)
                                                 name: response.description,
                                                 barcode: String(response.gtin),
                                                 category: response.category?.description || '',
@@ -109,14 +114,12 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
                                                 price: Number(response.avg_price) || 0,
                                                 status: "valid",
                                                 quantity: 1,
-                                                batch: ''
-                                            }
-
-                                            fillFormWithBarcodeData(productToFill)
+                                                batch: ''   // se não existir em ProductType, remova esta linha
+                                            };
+                                            fillFormWithBarcodeData(productToFill);
                                         }
                                     }
-                                }
-                                }
+                                }}
                                 value={barCode}
                                 placeholder="Ex: 7891234567890"
                             />
@@ -187,7 +190,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
                                     type="number"
                                     min='1'
                                     className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400 shadow-sm"
-                                    onChange={(e) => setQuantity((e.target.value))}
+                                    onChange={(e) => setQuantity(e.target.value)}
                                     value={quantity}
                                     placeholder="Ex: 50"
                                 />

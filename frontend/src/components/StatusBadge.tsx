@@ -1,6 +1,7 @@
 'use client';
 
-type ProductStatus = 'valid' | 'alert' | 'critical' | 'expired';
+// 1. Importamos a tipagem oficial do projeto (Fonte Única da Verdade)
+import { ProductStatus } from '@/types/ProductType'; 
 
 interface StatusBadgeProps {
   status: ProductStatus | string; // aceita string para capturar valores inesperados
@@ -14,8 +15,10 @@ const statusConfig: Record<ProductStatus, { label: string; className: string }> 
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+  // Normaliza o texto para evitar quebras por espaços ou letras maiúsculas
   const normalizedStatus = String(status).trim().toLowerCase() as ProductStatus;
 
+  // Busca no dicionário ou usa o fallback "Desconhecido"
   const { label, className } = statusConfig[normalizedStatus] ?? {
     label: 'Desconhecido',
     className: 'bg-gray-200 text-gray-600 border-gray-400',
@@ -27,4 +30,3 @@ export function StatusBadge({ status }: StatusBadgeProps) {
     </span>
   );
 }
-

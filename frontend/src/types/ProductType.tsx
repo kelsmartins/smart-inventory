@@ -1,5 +1,3 @@
-export type ProductStatus = 'valid' | 'alert' | 'critical' | 'expired';
-
 export type ProductType = {
   id: string | number;
   name: string;
@@ -7,7 +5,9 @@ export type ProductType = {
   category: string;
   expiryDate: string;
   price: number;
-  status: ProductStatus;
+  status: string;
   quantity: number;
   batch?: string | number;
 };
+
+export type ProductStatus = 'valid' | 'alert' | 'critical' | 'expired';

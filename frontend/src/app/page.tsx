@@ -22,10 +22,8 @@ const COLORS = ['#22c55e', '#eab308', '#ef4444', '#64748b'];
 export default function DashboardPage() {
 
   const { user, logout } = useAuthContext();
-  const { products, getProducts, isLoading, expiredProducts, criticalProducts, alertProducts, validProducts, financialRisk } = useProductsContext();
+  const { products, getProducts, isLoading, expiredProducts, criticalProducts, alertProducts, validProducts, financialRisk, expiringProducts, riskyProducts } = useProductsContext();
   const router = useRouter();
-  const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
-  const expiringProducts = [...criticalProducts, ...alertProducts];
 
 
   useEffect(() => {

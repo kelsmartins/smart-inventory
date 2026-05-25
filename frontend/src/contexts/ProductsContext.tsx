@@ -69,6 +69,9 @@ type ProductsContextType = {
     financialRisk: number;
     deleteProduct: (id: number | string) => Promise<void>;
     getProductToFillForm: (barCode: string) => Promise<BlueSoftResponse>;
+    putOnSale: (id: number | string) => Promise<void>;
+    expiringProducts: ProductType[];
+    riskyProducts: ProductType[];
 };
 
 export const ProductsContext = createContext({} as ProductsContextType);
@@ -78,6 +81,7 @@ export const ProductsContext = createContext({} as ProductsContextType);
 // ---------------------------------------------------------
 
 export const ProductsContextProvider = ({ children }: { children: React.ReactNode }) => {
+
     const [products, setProducts] = useState<ProductType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -89,7 +93,10 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         financialRisk
     } = useMemo(() => ProductService(products), [products]);
 
-    // Funções API Flask
+      const riskyProducts = [...expiredProducts, ...criticalProducts, ...alertProducts];
+      const [expiringProducts, setExpiringProducts] = useState<ProductType[]>(criticalProducts.concat(alertProducts));
+
+    // Funções API Flask (CRUD PRINCIPAL)
     async function getProducts() {
         try {
             setIsLoading(true);
@@ -201,6 +208,35 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
         }
     }
 
+    // FUNCOES SECUNDARIAS
+    async function putOnSale(id: number | string) {
+    try {
+        await axios_api.put(`/products/expiring/${id}`);
+        setProducts(currentProducts =>
+            currentProducts.map(product => {
+                const productProductId = typeof product.id === 'string'
+                    ? parseInt(product.id.split('-')[0])
+                    : product.id;
+
+                return productProductId === id ? { ...product } : product;
+            })
+        );
+        setExpiringProducts(prev => prev.filter(product => {
+            const productProductId = typeof product.id === 'string'
+                ? parseInt(product.id.split('-')[0])
+                : product.id;
+            return productProductId !== id;
+        }));
+
+        toast.success('Produto promovido com sucesso!');
+
+    } catch (error) {
+        console.error('Erro ao promover produto:', error);
+        toast.error('Erro ao promover produto');
+    }
+}
+
+
     return (
         <ProductsContext.Provider value={{
             products,
@@ -214,6 +250,9 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
             financialRisk,
             deleteProduct,
             getProductToFillForm,
+            putOnSale,
+            expiringProducts,
+            riskyProducts
         }}>
             {children}
         </ProductsContext.Provider>

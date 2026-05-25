@@ -18,13 +18,13 @@ export default function InventoryPage(){
         setIsProductFormOpen(!isProductFormOpen);
     }
 
-    // if (isLoading) {
-    //     return (
-    //         <div className="flex-1 flex min-h-screen items-center justify-center bg-slate-50 font-sans">
-    //             <p className="animate-pulse text-lg font-semibold text-slate-500">Carregando estoque...</p>
-    //         </div>
-    //     );
-    // }
+    if (isLoading) {
+        return (
+            <div className="flex-1 flex min-h-screen items-center justify-center bg-slate-50 font-sans">
+                <p className="animate-pulse text-lg font-semibold text-slate-500">Carregando estoque...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 flex flex-col bg-slate-50 h-full p-4 sm:p-8 font-sans w-full">
@@ -45,13 +45,14 @@ export default function InventoryPage(){
             {/* Tabela de Produtos */}
             <div className="flex-1 flex flex-col w-full overflow-hidden mt-2">
                 
-                {/* Cabeçalho da Lista */}
+                {/* Cabeçalho da Lista - Larguras recalculadas */}
                 <div className="flex flex-row h-12 items-center px-6 bg-white border border-slate-200 rounded-t-xl border-b-0 shadow-sm text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0 gap-2">
-                    <span className="w-[30%] sm:w-[25%] flex justify-start">Produto</span>
-                    <span className="hidden sm:flex sm:w-[20%] flex justify-start">Cód. Barras</span>
+                    <span className="w-[25%] sm:w-[20%] flex justify-start">Produto</span>
+                    <span className="hidden sm:flex sm:w-[15%] justify-start">Cód. Barras</span>
                     <span className="w-[20%] sm:w-[15%] flex justify-start">Validade</span>
-                    <span className="w-[15%] sm:w-[10%] flex justify-start">Qtd</span>
-                    <span className="w-[15%] sm:w-[20%] flex justify-start">Status</span>
+                    <span className="w-[20%] sm:w-[15%] flex justify-start">Preço</span>
+                    <span className="w-[10%] sm:w-[10%] flex justify-start">Qtd</span>
+                    <span className="w-[15%] sm:w-[15%] flex justify-start">Status</span>
                     <span className="w-[10%] flex justify-end">Ações</span>
                 </div>
 
@@ -62,26 +63,37 @@ export default function InventoryPage(){
                             key={product.id} 
                             className="flex flex-row h-16 items-center px-6 text-slate-600 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-150 shrink-0 gap-2 text-xs sm:text-sm"
                         >
-                            <span className="w-[30%] sm:w-[25%] flex justify-start truncate font-medium text-slate-800">
-                                {product.name}
+                            {/* Produto */}
+                            <span className="w-[25%] sm:w-[20%] flex justify-start truncate font-medium text-slate-800">
+                                {product.name.length > 30 ? product.name.slice(0, 27) + '...' : product.name}
                             </span>
                             
-                            <span className="hidden sm:flex sm:w-[20%] justify-start truncate pr-4 text-slate-500">
+                            {/* Cód. Barras */}
+                            <span className="hidden sm:flex sm:w-[15%] justify-start truncate pr-4 text-slate-500">
                                 {product.barcode || 'N/A'}
                             </span>
                             
+                            {/* Validade */}
                             <span className="w-[20%] sm:w-[15%] flex justify-start truncate">
                                 {product.expiryDate ? new Date(product.expiryDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '-'}
                             </span>
                             
-                            <span className="w-[15%] sm:w-[10%] flex justify-start font-semibold text-slate-700">
+                            {/* Preço (NOVA COLUNA) */}
+                            <span className="w-[20%] sm:w-[15%] flex justify-start font-medium text-slate-700">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(product.price) || 0)}
+                            </span>
+
+                            {/* Qtd */}
+                            <span className="w-[10%] sm:w-[10%] flex justify-start font-semibold text-slate-700">
                                 {product.quantity}
                             </span>
                             
-                            <span className="w-[15%] sm:w-[20%] flex justify-start">
+                            {/* Status */}
+                            <span className="w-[15%] sm:w-[15%] flex justify-start">
                                 <StatusBadge status={product.status} />
                             </span>
                             
+                            {/* Ações */}
                             <div className="w-[10%] flex justify-end items-center gap-1 sm:gap-3">
                                 <button className="p-1.5 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                                     <Edit className="w-4 h-4 sm:w-5 sm:h-5" />

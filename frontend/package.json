@@ -10,7 +10,7 @@
     "server": "json-server db.json -p 3333"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.1",
+    "@supabase/supabase-js": "^2.106.2",
     "@zxing/library": "^0.21.3",
     "axios": "^1.14.0",
     "cors": "^2.8.5",

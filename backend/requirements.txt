@@ -7,6 +7,7 @@ Flask-SQLAlchemy==3.1.1   # Mapeamento Objeto-Relacional (ORM) para lidar com as
 Flask-Migrate==4.0.5      # Gerenciador de migrações do banco de dados (histórico de tabelas)
 psycopg2-binary==2.9.12   # Driver do PostgreSQL (Banco de dados de produção gratuito do Render)
 pymysql==1.1.0            # Driver do MySQL (Caso a equipe teste usando XAMPP localmente)
+supabase== 2.30.0
 
 # --- Segurança e Autenticação ---
 Flask-JWT-Extended==4.5.3 # Gerador e validador de tokens de sessão seguros (JWT)

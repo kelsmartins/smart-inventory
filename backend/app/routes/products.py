@@ -82,6 +82,25 @@ def create_product():
     }), 201
 
 
+# ====================//  PROMOVER PRODUTOS QUE ESTÃO EXPIRANDO  //========================
+@products_bp.route('/expiring/<expiring_id>', methods=['PUT'])
+def put_product_on_sale(expiring_id):
+    
+    expiring_product = Product.query.get(expiring_id)
+
+    if not expiring_product:
+        return jsonify({"error": "Produto não encontrado"}), 404
+
+    if expiring_product.status == 'alert':
+        expiring_product.price = expiring_product.price * 0.8
+    elif expiring_product.status == 'critical':
+        expiring_product.price = expiring_product.price * 0.5
+
+    db.session.commit()
+    return jsonify({"message": "Produto promovido com sucesso!"}), 200
+
+
+
 # ====================//  BUSCAR CÓDIGO DE BARRAS (BLUESOFT)  //========================
 @products_bp.route('/barcode/<barcode>', methods=['GET'])
 def buscar_produto(barcode):
@@ -117,3 +136,4 @@ def buscar_produto(barcode):
     except Exception as e:
         # Captura erros caso o servidor da Bluesoft caia ou a internet falhe
         return jsonify({"message": f"Falha na comunicação: {str(e)}"}), 500
+    

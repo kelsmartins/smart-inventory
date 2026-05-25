@@ -1,12 +1,15 @@
 import { ProductType } from "@/types/ProductType";
 import { ClockAlert, Percent } from "lucide-react";
 import { useState } from "react";
-import { ExpiringProductsReview } from "./ExpiringProductsReview";
+import { ExpiringProductsModal } from "./ExpiringProductsModal";
+import { useProductsContext } from "@/hooks/useProductsContext";
 
 type ExpiryAlertBannerProps = {
   ExpiringProductsData: ProductType[];
 }
 export function ExpiringAlertBanner({ExpiringProductsData}: ExpiryAlertBannerProps){
+
+  const { putOnSale } = useProductsContext();
 
   const [showModal, setShowModal] = useState(false);
 
@@ -34,7 +37,7 @@ export function ExpiringAlertBanner({ExpiringProductsData}: ExpiryAlertBannerPro
           </button>
 
           {showModal && 
-            <ExpiringProductsReview onClose={()=>setShowModal(false)} ExpiringProductsData={ExpiringProductsData}/>
+            <ExpiringProductsModal onClose={()=>setShowModal(false)} ExpiringProductsData={ExpiringProductsData} putOnSale={putOnSale}/>
           }
 
         </div>

@@ -14,9 +14,6 @@ class Batch(db.Model):
     # Código de identificação do lote (ex: LOTE-2024-001)
     code = db.Column(db.String(100), nullable=False)
     
-    # Data em que o lote foi fabricado
-    manufacturing_date = db.Column(db.Date, nullable=False)
-    
     # Data de validade específica deste lote (Crucial para FEFO)
     expiry_date = db.Column(db.Date, nullable=False)
     

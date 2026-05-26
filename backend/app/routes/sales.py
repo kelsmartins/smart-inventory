@@ -4,16 +4,13 @@ from app.models.sale import Sale, SaleItem
 from app.models.product import Product
 from app.models.movement import Movement, MovementType
 from app.services.fefo_service import FEFOService
-
-# 1. IMPORTAÇÕES ATUALIZADAS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 sales_bp = Blueprint('sales', __name__)
 
 @sales_bp.route('/', methods=['GET'])
-@jwt_required() # 2. NOVA PROTEÇÃO
+@jwt_required() 
 def get_sales():
-    # 3. PEGA O USUÁRIO LOGADO
     user_id = get_jwt_identity()
     
     sales = Sale.query.filter_by(user_id=user_id).all()
@@ -24,12 +21,13 @@ def get_sales():
         for item in s.items:
             items.append({
                 "product_id": item.product_id,
+                "name": item.name, # <-- ATUALIZADO: Enviando o nome para o React
                 "quantity": item.quantity,
                 "unit_price": item.unit_price
             })
         result.append({
             "id": s.id,
-            "total": s.total,
+            "total_price": s.total_price, # <-- ATUALIZADO: Nome da coluna corrigido
             "created_at": s.created_at.isoformat(),
             "items": items
         })
@@ -77,6 +75,7 @@ def create_sale():
                 sale_item = SaleItem(
                     sale_id=sale.id,
                     product_id=product.id,
+                    name=product.name,  # <-- ATUALIZADO: Salvando o nome no histórico
                     quantity=take,
                     unit_price=unit_price,
                     batch_id=batch.id
@@ -95,9 +94,9 @@ def create_sale():
                 )
                 db.session.add(movement)
             
-        sale.total = total
+        sale.total_price = total # <-- ATUALIZADO: Nome da coluna corrigido
         db.session.commit()
-        return jsonify({"message": "Sale created successfully", "sale_id": sale.id, "total": total}), 201
+        return jsonify({"message": "Sale created successfully", "sale_id": sale.id, "total_price": total}), 201
         
     except Exception as e:
         db.session.rollback()

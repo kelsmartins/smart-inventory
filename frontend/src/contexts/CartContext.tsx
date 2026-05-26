@@ -1,23 +1,29 @@
 'use client'
 import { createContext, useState } from "react";
-import { ItemCart } from '@/types/ItemCart';
+import { ItemCartData } from '@/types/ItemCart';
 import { ProductType } from "@/types/ProductType";
 
 interface CartContextInterface {
-    cart: ItemCart[];
+    cart: ItemCartData[];
     addToCart: (item: ProductType) => void; 
     deleteFromCart: (id: number) => void;
+    totalCart: number; 
 }
 
 export const CartContext = createContext({} as CartContextInterface);
 
 export function CartContextProvider({children}: {children: React.ReactNode}){
 
-    const [cart, setCart] = useState<ItemCart[]>([]);
+    const [cart, setCart] = useState<ItemCartData[]>([]);
+    const [totalCart, setTotalCart] = useState(0);
+    
+    for (const c of cart) {
+        setTotalCart(prev => prev + c.total_price);
+    }
 
     function addToCart(product: ProductType){
 
-        const item: ItemCart = {
+        const item: ItemCartData = {
             id: product.id,
             name: product.name,
             quantity: 1,
@@ -34,7 +40,8 @@ export function CartContextProvider({children}: {children: React.ReactNode}){
         <CartContext.Provider value={{ 
             cart, 
             addToCart,
-            deleteFromCart
+            deleteFromCart,
+            totalCart
             }}>
             {children}
         </CartContext.Provider>

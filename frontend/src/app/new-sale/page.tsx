@@ -3,17 +3,18 @@
 import { Package, Trash, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // Importado para fazer o redirecionamento seguro
-import { PaymentMethods } from "@/components/PaymentMethods";
+import { PaymentMethods } from "@/components/New Sale/PaymentMethods";
 import { ProductType } from "@/types/ProductType";
 import { useProductsContext } from "@/hooks/useProductsContext";
 import { useCartContext } from "@/hooks/useCartContext";
+import { ItemCart } from "@/components/New Sale/ItemCart";
 
 
 export default function NewSale() {
 
     const { products, getProducts } = useProductsContext();
 
-    const { cart, addToCart, deleteFromCart } = useCartContext();
+    const { cart, addToCart, deleteFromCart, totalCart } = useCartContext();
 
     const router = useRouter(); // Inicializando o roteador do Next.js
     const [paymentOpen, setPaymentOpen] = useState(false);
@@ -102,30 +103,19 @@ export default function NewSale() {
                                 <span className="text-sm">Carrinho vazio</span>
                             </div>
                         )}
-                        {cart.map((product, index) => (
-                            <div
-                                key={index}
-                                className="bg-slate-50 w-full min-h-[64px] border border-slate-100 flex flex-row items-center justify-between rounded-xl p-3 gap-3 hover:bg-slate-100 transition-colors"
-                            >
-                                <div className="flex items-center gap-3 overflow-hidden">
-                                    <div className="w-10 h-10 bg-white border border-slate-200 flex items-center justify-center shrink-0 rounded-lg">
-                                        <Package className="w-5 h-5 text-slate-300" />
-                                    </div>
-                                    <div className="flex flex-col overflow-hidden">
-                                        <span className="font-semibold text-slate-700 text-sm truncate">{product.name}</span>
-                                        <span className="text-xs font-medium text-slate-500 truncate">R$ {product.total_price.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                                <button className="p-2 rounded-md hover:bg-red-50 group transition-colors">
-                                    <Trash className="h-4 w-4 text-slate-400 group-hover:text-red-500 shrink-0 cursor-pointer transition-colors" />
-                                </button>
-                            </div>
+                        {cart.map((item, index) => (
+                            <ItemCart 
+                                key={index} 
+                                item={item} 
+                                deleteFromCart={deleteFromCart} 
+                                index={index} 
+                            />
                         ))}
                     </div>
 
                     <div className="w-full pt-4 mt-2 border-t border-slate-100 flex flex-col justify-between items-end shrink-0 gap-1">
-                        <span className="text-sm font-medium text-slate-500">Subtotal: R$ 0,00</span>
-                        <span className="text-xl md:text-2xl font-bold text-slate-800">Total: R$ 0,00</span>
+                        <span className="text-sm font-medium text-slate-500">Subtotal: R$ {totalCart.toFixed(2)}</span>
+                        <span className="text-xl md:text-2xl font-bold text-slate-800">Total: R$ {totalCart.toFixed(2)}</span>
                     </div>
 
                     <div className="w-full mt-6 flex items-center justify-end shrink-0 relative">

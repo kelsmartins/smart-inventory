@@ -1,4 +1,4 @@
-export type ItemCart = {
+export type ItemCartData = {
     id: number;
     name: string;
     quantity: number;

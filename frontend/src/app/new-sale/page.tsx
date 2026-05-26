@@ -14,7 +14,7 @@ export default function NewSale() {
 
     const { products, getProducts } = useProductsContext();
 
-    const { cart, addToCart, deleteFromCart, totalCart } = useCartContext();
+    const { cart, addToCart, deleteFromCart, totalCart, increaseQuantity, decreaseQuantity } = useCartContext();
 
     const router = useRouter(); // Inicializando o roteador do Next.js
     const [paymentOpen, setPaymentOpen] = useState(false);
@@ -109,6 +109,8 @@ export default function NewSale() {
                                 item={item} 
                                 deleteFromCart={deleteFromCart} 
                                 index={index} 
+                                decreaseQuantity={decreaseQuantity}
+                                increaseQuantity={increaseQuantity}
                             />
                         ))}
                     </div>

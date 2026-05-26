@@ -23,7 +23,7 @@ def register():
         email=data['email'],
         name=data.get('name', 'Usuário'),
         document=data.get('document'),
-        is_admin=data.get('isAdmin', False)
+        is_admin=data.get('isAdmin', True)
     )
     user.set_password(data['password'])
     
@@ -71,3 +71,52 @@ def get_me():
 @jwt_required()
 def logout():
     return jsonify({"message": "Successfully logged out"}), 200
+
+@auth_bp.route('/collaborator', methods=['POST'])
+@jwt_required()
+def create_collaborator():
+    """
+    Cria um colaborador no sistema. 
+    Apenas administradores podem fazer isso.
+    """
+    current_user_id = get_jwt_identity()
+    admin = User.query.get(current_user_id)
+    
+    if not admin or not admin.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"message": "Email and password are required"}), 400
+    
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"message": "Email already exists"}), 400
+    
+    user = User(
+        email=data['email'],
+        name=data.get('name', 'Colaborador'),
+        document=data.get('document'),
+        is_admin=False
+    )
+    user.set_password(data['password'])
+    
+    db.session.add(user)
+    db.session.commit()
+    
+    return jsonify({"message": "Collaborator created successfully", "user": user.to_dict()}), 201
+
+@auth_bp.route('/collaborator', methods=['GET'])
+@jwt_required()
+def list_collaborators():
+    """
+    Lista todos os usuários que não são administradores.
+    """
+    current_user_id = get_jwt_identity()
+    admin = User.query.get(current_user_id)
+    
+    if not admin or not admin.is_admin:
+        return jsonify({"message": "Admin privileges required"}), 403
+    
+    users = User.query.filter_by(is_admin=False).all()
+    return jsonify([u.to_dict() for u in users]), 200
+

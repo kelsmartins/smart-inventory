@@ -4,19 +4,7 @@ import { createContext, ReactNode, useState, useEffect, useCallback } from "reac
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { axios_api } from "@/api/axios_api";
-
-// ==================================================
-// TIPO USUÁRIO
-// ==================================================
-export type User = {
-  id: string; 
-  name: string;
-  email: string;
-  document?: string;
-  role: string; 
-  isAdmin: boolean;
-  created_at?: string;
-};
+import { User } from "@/types/UserType";
 
 // ==================================================
 // TIPO DO CONTEXTO

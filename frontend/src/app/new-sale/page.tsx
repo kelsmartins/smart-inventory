@@ -6,17 +6,16 @@ import { useRouter } from "next/navigation"; // Importado para fazer o redirecio
 import { PaymentMethods } from "@/components/PaymentMethods";
 import { ProductType } from "@/types/ProductType";
 import { useProductsContext } from "@/hooks/useProductsContext";
+import { useCartContext } from "@/hooks/useCartContext";
 
-type ProductTest = {
-    id: number;
-    name: string;
-    expiryDate: string;
-}
 
 export default function NewSale() {
-    const router = useRouter(); // Inicializando o roteador do Next.js
+
     const { products, getProducts } = useProductsContext();
-    const [cart, setCart] = useState<ProductType[]>([]);
+
+    const { cart, addToCart, deleteFromCart } = useCartContext();
+
+    const router = useRouter(); // Inicializando o roteador do Next.js
     const [paymentOpen, setPaymentOpen] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -31,8 +30,8 @@ export default function NewSale() {
         setMenuOpen(!menuOpen);
     }
 
-    function addToCart(product: ProductType) {
-        setCart((prevCart) => [...prevCart, product]);
+    function handleAddToCart(product: ProductType) {
+        addToCart(product);
     }
 
     function openPayment() {
@@ -114,7 +113,7 @@ export default function NewSale() {
                                     </div>
                                     <div className="flex flex-col overflow-hidden">
                                         <span className="font-semibold text-slate-700 text-sm truncate">{product.name}</span>
-                                        <span className="text-xs font-medium text-slate-500 truncate">R$ {product.price.toFixed(2)}</span>
+                                        <span className="text-xs font-medium text-slate-500 truncate">R$ {product.total_price.toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <button className="p-2 rounded-md hover:bg-red-50 group transition-colors">

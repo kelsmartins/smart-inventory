@@ -3,5 +3,5 @@ export type ItemCartType = {
     name: string;
     quantity: number;
     total_price: number;
-
+    stock: number;
 }

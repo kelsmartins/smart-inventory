@@ -1,5 +1,7 @@
 'use client'
 
+import { useCartContext } from "@/hooks/useCartContext";
+import { useSalesContext } from "@/hooks/useSalesContext";
 import { CreditCardIcon, QrCodeIcon, Banknote, X } from "lucide-react";
 
 type Props = {
@@ -7,6 +9,13 @@ type Props = {
 };
 
 export function PaymentMethods({ openPayment }: Props) {
+
+    const { finalizeCart } = useCartContext();
+
+    function handleFinalize() {
+        finalizeCart();
+        openPayment();
+    }
     
     const methods = [
         { 
@@ -53,6 +62,7 @@ export function PaymentMethods({ openPayment }: Props) {
                         {methods.map((method, index) => (
                             <button 
                                 key={index} 
+                                onClick={handleFinalize}
                                 className="group flex flex-col items-center justify-center p-4 bg-white hover:bg-white border border-slate-200/70 hover:border-blue-500 active:scale-95 transition-all rounded-xl aspect-square w-full shadow-sm hover:shadow-[0_8px_30px_rgb(59,130,246,0.12)]"
                             >
                                 {/* Container do Ícone com tom pastel de azul */}

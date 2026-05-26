@@ -3,20 +3,19 @@ from app import db
 from app.models.user import User
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
-# Blueprint para organizar todas as rotas de Autenticação (Login, Cadastro, etc)
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
     """
     Cria um novo usuário no sistema.
-    No fluxo público, o novo usuário é definido como ADMIN por padrão.
+    Requisito: JSON com 'email' e 'password'.
     """
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
         return jsonify({"message": "Email and password are required"}), 400
     
-    # Verifica se o e-mail já existe para evitar duplicatas
+    # Verifica se o e-mail já existe
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"message": "Email already exists"}), 400
     
@@ -37,7 +36,7 @@ def register():
 def login():
     """
     Autentica o usuário e gera um Token JWT de acesso.
-    O token é enviado ao frontend e deve ser usado em todas as rotas protegidas.
+    Requisito: JSON com 'email' e 'password'.
     """
     data = request.get_json()
     if not data or 'email' not in data or 'password' not in data:
@@ -47,7 +46,7 @@ def login():
     if not user or not user.check_password(data['password']):
         return jsonify({"message": "Invalid email or password"}), 401
     
-    # Gera o token JWT assinado com o ID do usuário (Identity)
+    # Gera o token assinado com o ID do usuário
     access_token = create_access_token(identity=str(user.id))
     return jsonify({
         "message": "Login successful", 
@@ -59,8 +58,7 @@ def login():
 @jwt_required()
 def get_me():
     """
-    Recupera os dados do usuário dono do Token atual.
-    Usado pelo frontend para manter a sessão ativa após recarregar a página.
+    Retorna os dados do usuário autenticado.
     """
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
@@ -72,7 +70,6 @@ def get_me():
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    # O logout no JWT é feito primariamente no frontend (removendo o token do localStorage)
     return jsonify({"message": "Successfully logged out"}), 200
 
 @auth_bp.route('/collaborator', methods=['POST'])
@@ -80,7 +77,7 @@ def logout():
 def create_collaborator():
     """
     Cria um colaborador no sistema. 
-    Apenas administradores podem acessar esta rota.
+    Apenas administradores podem fazer isso.
     """
     current_user_id = get_jwt_identity()
     admin = User.query.get(current_user_id)
@@ -95,7 +92,6 @@ def create_collaborator():
     if User.query.filter_by(email=data['email']).first():
         return jsonify({"message": "Email already exists"}), 400
     
-    # Colaboradores são sempre is_admin = False
     user = User(
         email=data['email'],
         name=data.get('name', 'Colaborador'),
@@ -114,7 +110,6 @@ def create_collaborator():
 def list_collaborators():
     """
     Lista todos os usuários que não são administradores.
-    Apenas administradores podem acessar esta rota.
     """
     current_user_id = get_jwt_identity()
     admin = User.query.get(current_user_id)

@@ -1,5 +1,5 @@
 import { Package, Trash, Minus, Plus } from "lucide-react";
-import { ItemCartData } from "@/types/ItemCartData";
+import { ItemCartData } from "@/types/ItemCartType";
 
 interface ItemCartProps {
     item: ItemCartData;

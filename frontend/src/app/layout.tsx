@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   description: 'Gestão preventiva de estoque com foco em redução de desperdício',
 };
 
-export const dynamic = 'force-dynamic';
-
 export default function RootLayout({
   children,
 }: {

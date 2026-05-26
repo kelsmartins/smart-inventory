@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { ItemCartData } from '@/types/ItemCart';
 import { ProductType } from "@/types/ProductType";
 
@@ -17,9 +17,10 @@ export function CartContextProvider({children}: {children: React.ReactNode}){
     const [cart, setCart] = useState<ItemCartData[]>([]);
     const [totalCart, setTotalCart] = useState(0);
     
-    for (const c of cart) {
-        setTotalCart(prev => prev + c.total_price);
-    }
+    useEffect(() => {
+        const total = cart.reduce((sum, item) => sum + item.total_price, 0);
+        setTotalCart(total);
+    }, [cart]);
 
     function addToCart(product: ProductType){
 

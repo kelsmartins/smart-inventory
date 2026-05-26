@@ -1,6 +1,6 @@
 'use client'
 
-import { Package, Trash, Plus, X } from "lucide-react";
+import { Package, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // Importado para fazer o redirecionamento seguro
 import { PaymentMethods } from "@/components/New Sale/PaymentMethods";
@@ -157,7 +157,7 @@ export default function NewSale() {
                             <div
                                 key={product.id}
                                 className="bg-white border border-slate-200 aspect-square flex flex-col rounded-xl items-center justify-center relative cursor-pointer p-3 md:p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 active:scale-95 group"
-                                onClick={() => addToCart(product)}
+                                onClick={() => handleAddToCart(product)}
                             >
                                 {cart.some((item) => item.id === product.id) && (
                                     <div className="absolute top-2 right-2 bg-blue-600 px-2 py-0.5 rounded-full text-white text-xs font-bold shadow-sm">

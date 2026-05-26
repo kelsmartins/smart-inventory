@@ -3,6 +3,7 @@ import requests
 from flask import Blueprint, jsonify, request
 from app import db
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.models.product import Product
 from app.models.batch import Batch
@@ -11,38 +12,34 @@ products_bp = Blueprint('products', __name__)
 
 # ====================//  GET PRODUCTS  //========================
 @products_bp.route('', methods=['GET'])
+@jwt_required()
 def get_products():
-    
-    products = Product.query.all()
+    user_id = get_jwt_identity()
+    # Retorna apenas os produtos do usuário logado
+    products = Product.query.filter_by(user_id=user_id).all()
 
     result = [p.to_dict() for p in products]
     return jsonify(result), 200
 
 
-
 # ====================//  POST PRODUCT  //========================
 @products_bp.route('', methods=['POST'])
+@jwt_required()
 def create_product():
-    """
-    Cria um novo produto e automaticamente gera o primeiro lote associado.
-    Requisito: JSON com 'name' e 'expiry_date' (ou 'expiryDate').
-    """
+    user_id = get_jwt_identity()
     data = request.get_json()
     
-    # Aceita tanto camelCase (React) quanto snake_case
     received_expiry = data.get('expiryDate') or data.get('expiry_date')
     
     if not data or 'name' not in data or not received_expiry:
         return jsonify({"message": "Name and expiryDate are required"}), 400
     
     try:
-        # Pega apenas a parte da data caso o frontend envie um timestamp completo
         date_str = received_expiry.split('T')[0]
         expiry_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     except ValueError:
         return jsonify({"message": "Invalid date format. Use YYYY-MM-DD"}), 400
     
-    # 1. Cria a entidade Produto
     product = Product(
         name=data.get('name'),
         barcode=data.get('barcode'),
@@ -50,13 +47,13 @@ def create_product():
         expiry_date=expiry_date,
         price=data.get('price', 0.0),
         quantity=data.get('quantity', 1.0),
-        batch_code=data.get('batch_code')
+        batch_code=data.get('batch_code'),
+        user_id=user_id  # <--- Salva o produto para este usuário!
     )
     
     db.session.add(product)
-    db.session.flush() # Garante a criação do ID do produto para usar no lote
+    db.session.flush() 
     
-    # 2. Cria automaticamente o Lote inicial (Essencial para FEFO)
     batch = Batch(
         code=data.get('batch_code') or f"BATCH-{product.id}",
         manufacturing_date=datetime.utcnow().date(),
@@ -66,10 +63,8 @@ def create_product():
         product_id=product.id
     )
     db.session.add(batch)
-    
     db.session.commit()
     
-    # 3. Retorna os dados completos que o frontend React espera
     return jsonify({
         "id": product.id,
         "name": product.name,
@@ -84,29 +79,36 @@ def create_product():
 
 # ====================//  PROMOVER PRODUTOS QUE ESTÃO EXPIRANDO  //========================
 @products_bp.route('/expiring/<expiring_id>', methods=['PUT'])
+@jwt_required()
 def put_product_on_sale(expiring_id):
+    user_id = get_jwt_identity()
     
-    expiring_product = Product.query.get(expiring_id)
+    # Garante que o usuário só pode promover produtos que pertencem a ele
+    expiring_product = Product.query.filter_by(id=expiring_id, user_id=user_id).first()
 
     if not expiring_product:
-        return jsonify({"error": "Produto não encontrado"}), 404
+        return jsonify({"error": "Produto não encontrado ou acesso negado"}), 404
 
-    if expiring_product.status == 'alert':
+    # Aqui você pode manter sua lógica de status (alert/critical) dependendo de como você a calcula.
+    # Opcional: ajustar preços se houver status guardado no banco. Se o status é calculado no frontend,
+    # você pode apenas aplicar um desconto base aqui ou receber o desconto via JSON.
+    if hasattr(expiring_product, 'status'):
+        if expiring_product.status == 'alert':
+            expiring_product.price = expiring_product.price * 0.8
+        elif expiring_product.status == 'critical':
+            expiring_product.price = expiring_product.price * 0.5
+    else:
+        # Exemplo caso não tenha o campo 'status' no banco: apenas reduz 20%
         expiring_product.price = expiring_product.price * 0.8
-    elif expiring_product.status == 'critical':
-        expiring_product.price = expiring_product.price * 0.5
 
     db.session.commit()
     return jsonify({"message": "Produto promovido com sucesso!"}), 200
 
 
-
 # ====================//  BUSCAR CÓDIGO DE BARRAS (BLUESOFT)  //========================
 @products_bp.route('/barcode/<barcode>', methods=['GET'])
+@jwt_required()
 def buscar_produto(barcode):
-    """cxc
-    Consulta a API da Bluesoft para preenchimento automático via código de barras.
-    """
     token = os.getenv("BLUESOFT_TOKEN") 
     user_agent = os.getenv("USER_AGENT")
     
@@ -119,21 +121,15 @@ def buscar_produto(barcode):
     }
     
     try:
-        # Faz a requisição para a Bluesoft
         resp = requests.get(url, headers=headers)
         
-        # Verifica se o produto não existe (Erro 404)
         if resp.status_code == 404:
             return jsonify({"message": "Produto não encontrado na base da Bluesoft"}), 404
             
-        # Verifica se deu algum outro erro na Bluesoft (ex: estourou o limite de consultas)
         elif resp.status_code != 200:
             return jsonify({"message": f"Erro na API externa. Código: {resp.status_code}"}), resp.status_code
             
-        # Se deu tudo certo, devolve pro React
         return jsonify(resp.json()), 200
 
     except Exception as e:
-        # Captura erros caso o servidor da Bluesoft caia ou a internet falhe
         return jsonify({"message": f"Falha na comunicação: {str(e)}"}), 500
-    

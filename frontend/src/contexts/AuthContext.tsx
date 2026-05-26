@@ -4,7 +4,6 @@ import { createContext, ReactNode, useState, useEffect, useCallback } from "reac
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { axios_api } from "@/api/axios_api";
-import { supabase } from "@/api/supabase";
 
 // ==================================================
 // TIPO USUÁRIO
@@ -57,58 +56,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ==========================================
   const fetchUserProfile = async (): Promise<User | null> => {
     try {
+      // Como o withCredentials do Axios está True, o cookie viaja sozinho aqui!
       const response = await axios_api.get('/auth/me');
       const userData = response.data;
       setUser(userData);
       return userData;
     } catch (error) {
-      console.error("Erro ao buscar perfil:", error);
+      console.error("Usuário não autenticado ou sessão expirada.");
       setUser(null);
       return null;
     }
   };
 
   // ==========================================
-  // ESCUTA A SESSÃO DO SUPABASE AO ABRIR O APP
+  // VERIFICA A SESSÃO AO ABRIR O APP
   // ==========================================
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchUserProfile().finally(() => setIsLoading(false));
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchUserProfile();
-      } else {
-        setUser(null);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    // Apenas tenta buscar o perfil. O Flask e o Cookie resolvem o resto.
+    fetchUserProfile().finally(() => setIsLoading(false));
   }, []);
 
   // ==========================================
-  // LOGIN DIRETO NO SUPABASE
+  // LOGIN NO SEU BACKEND PYTHON (FLASK)
   // ==========================================
   async function login(email: string, password: string): Promise<User | null> {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const response = await axios_api.post('/auth/login', { email, password });
       
-      if (error) throw error;
-      
-      const response = await axios_api.get('/auth/me');
-      const userData = response.data;
+      const userData = response.data.user;
       setUser(userData);
+      
       toast.success('Login realizado com sucesso!');
       return userData; 
 
     } catch (error: any) {
       console.error('❌ ERRO NO LOGIN:', error);
-      toast.error('Email ou senha incorretos ou erro de servidor.');
+      toast.error('Email ou senha incorretos.');
       return null;
     }
   }
@@ -118,12 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ==========================================
   async function register(userData: RegisterData): Promise<User | null> {
     try {
-      // Chama a API do Flask, que vai criar no Supabase e no banco de dados local
       await axios_api.post('/auth/register', userData);
       
       toast.success('Conta criada com sucesso! Entrando...');
 
-      // Faz o login automaticamente com os dados recém-criados para iniciar a sessão
+      // Faz o login automaticamente para receber o cookie de segurança
       const loggedUser = await login(userData.email, userData.password);
       return loggedUser;
 
@@ -141,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await axios_api.post('/auth/collaborator', userData);
       toast.success('Colaborador adicionado com sucesso!');
-      await getUsers(); // atualiza a lista da tela
+      await getUsers(); 
     } catch (error: any) {
       console.error('Erro ao adicionar colaborador:', error);
       toast.error(error.response?.data?.message || 'Erro ao adicionar colaborador');
@@ -154,7 +136,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ==========================================
   const getUsers = useCallback(async () => {
     try {
-      // Rota exata do backend
       const response = await axios_api.get('/auth/collaborator');
       const users = Array.isArray(response.data) ? response.data : response.data.users ?? [];
       setUsersList(users);
@@ -165,13 +146,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-  // LOGOUT NO SUPABASE
+  // LOGOUT (Destrói a sessão no Flask)
   // ==========================================
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    toast.success('Logout realizado com sucesso!');
-    router.push('/login');
+    try {
+      // Avisa o backend para apagar o cookie do navegador
+      await axios_api.post('/auth/logout');
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+    } finally {
+      setUser(null);
+      toast.success('Logout realizado com sucesso!');
+      router.push('/login');
+    }
   };
 
   return (

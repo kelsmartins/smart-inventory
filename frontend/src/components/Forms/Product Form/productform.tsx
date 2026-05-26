@@ -41,7 +41,7 @@ export function ProductForm({ showProductForm }: { showProductForm: () => void }
         const formatedDate = `${year}-${month}-${day}`;
 
         const productData = {
-            id: Number(crypto.randomUUID()),
+            id: 0,
             barcode: barCode,
             name: productName,
             batch: batch,

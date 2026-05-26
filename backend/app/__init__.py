@@ -19,8 +19,17 @@ def create_app():
     migrate.init_app(app, db)
     jwt.init_app(app)
     
-    # CORS Agressivo: Libera o React
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # ==========================================
+    # CORS SEGURO (CONFIGURADO PARA COOKIES)
+    # ==========================================
+    # Adicione a URL exata do seu Vercel abaixo (sem a barra / no final)
+    frontend_urls = [
+        "http://localhost:3000",
+        "https://seu-projeto-smart-inventory.vercel.app" 
+    ]
+    
+    # supports_credentials=True é obrigatório para o navegador aceitar/enviar o cookie
+    CORS(app, supports_credentials=True, resources={r"/*": {"origins": frontend_urls}})
 
     # Importa modelos para o SQLAlchemy reconhecer as tabelas
     from app.models.product import Product

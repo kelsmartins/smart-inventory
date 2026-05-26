@@ -1,160 +1,73 @@
-import os
 from flask import Blueprint, jsonify, request
 from app import db
 from app.models.user import User
-
-# Necessário para criar usuários via admin
-from supabase import create_client
-
-from app.auth_middleware import require_supabase_auth
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 auth_bp = Blueprint('auth', __name__)
 
-# ====================//  GET ME (Perfil do Usuário)  //========================
-@auth_bp.route('/me', methods=['GET'], strict_slashes=False)
-@require_supabase_auth
-def get_me(user_id):
-    # Busca o usuário usando o user_id injetado pelo Guardião
-    user = User.query.filter_by(id=user_id).first()
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    """
+    Cria um novo usuário no sistema.
+    Requisito: JSON com 'email' e 'password'.
+    """
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"message": "Email and password are required"}), 400
     
-    if not user:
-        return jsonify({'msg': 'Usuário não encontrado no banco local.'}), 404
-        
+    # Verifica se o e-mail já existe
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"message": "Email already exists"}), 400
+    
+    user = User(
+        email=data['email'],
+        name=data.get('name', 'Usuário'),
+        document=data.get('document'),
+        is_admin=data.get('isAdmin', False)
+    )
+    user.set_password(data['password'])
+    
+    db.session.add(user)
+    db.session.commit()
+    
+    return jsonify({"message": "User registered successfully", "user": user.to_dict()}), 201
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    """
+    Autentica o usuário e gera um Token JWT de acesso.
+    Requisito: JSON com 'email' e 'password'.
+    """
+    data = request.get_json()
+    if not data or 'email' not in data or 'password' not in data:
+        return jsonify({"message": "Email and password are required"}), 400
+    
+    user = User.query.filter_by(email=data['email']).first()
+    if not user or not user.check_password(data['password']):
+        return jsonify({"message": "Invalid email or password"}), 401
+    
+    # Gera o token assinado com o ID do usuário
+    access_token = create_access_token(identity=str(user.id))
     return jsonify({
-        'id': user.id,
-        'email': user.email,
-        'role': user.role,
-        'name': user.name
+        "message": "Login successful", 
+        "access_token": access_token, 
+        "user": user.to_dict()
     }), 200
 
-
-# ====================//  REGISTRO DO DONO/ADMIN (Público)  //========================
-@auth_bp.route('/register', methods=['POST'], strict_slashes=False)
-def register_admin():
+@auth_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_me():
     """
-    Rota pública para o dono da empresa criar sua conta inicial.
+    Retorna os dados do usuário autenticado.
     """
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name')
-    document = data.get('document')
-
-    if not email or not password:
-        return jsonify({"message": "Email e senha são obrigatórios"}), 400
-
-    try:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-        supabase_admin = create_client(url, key)
-
-        # 1. Cria no Supabase já com o cargo de 'admin'
-        new_user = supabase_admin.auth.admin.create_user({
-            "email": email,
-            "password": password,
-            "email_confirm": True, 
-            "user_metadata": {
-                "name": name,
-                "document": document,
-                "role": "admin" 
-            }
-        })
-        
-        # 2. Salva no banco local
-        novo_admin = User(
-            id=new_user.user.id,
-            email=email,
-            name=name,
-            document=document,
-            role='admin'
-        )
-        db.session.add(novo_admin)
-        db.session.commit()
-        
-        return jsonify({"message": "Administrador criado com sucesso!"}), 201
-
-    except Exception as e:
-        db.session.rollback() 
-        return jsonify({"message": f"Falha no registro: {str(e)}"}), 400
-
-
-# ====================//  CRIAR COLABORADOR (Apenas Admin)  //========================
-@auth_bp.route('/collaborator', methods=['POST'], strict_slashes=False)
-@require_supabase_auth
-def create_collaborator(user_id):
-    """
-    Rota protegida onde o Admin cria um novo funcionário para o sistema.
-    """
-    # 1. Verifica se quem está tentando criar é realmente um Admin
-    admin_user = User.query.filter_by(id=user_id).first()
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
     
-    if not admin_user or admin_user.role != 'admin':
-        return jsonify({"message": "Acesso negado. Apenas administradores podem criar contas."}), 403
+    return jsonify(user.to_dict()), 200
 
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name')
-    document = data.get('document')
-
-    if not email or not password:
-        return jsonify({"message": "Email e senha são obrigatórios"}), 400
-
-    try:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-        supabase_admin = create_client(url, key)
-
-        # 2. Cria o usuário no Supabase
-        new_user = supabase_admin.auth.admin.create_user({
-            "email": email,
-            "password": password,
-            "email_confirm": True, 
-            "user_metadata": {
-                "name": name,
-                "document": document,
-                "role": "collaborator" 
-            }
-        })
-        
-        # 3. Salva no banco local (Crucial para o GET funcionar depois)
-        novo_colaborador = User(
-            id=new_user.user.id, 
-            email=email,
-            name=name,
-            document=document,
-            role='collaborator'
-        )
-        db.session.add(novo_colaborador)
-        db.session.commit()
-        
-        return jsonify({"message": "Colaborador criado com sucesso!"}), 201
-
-    except Exception as e:
-        db.session.rollback() 
-        return jsonify({"message": f"Falha na criação: {str(e)}"}), 400
-    
-
-# ====================//  LISTAR COLABORADORES (Apenas Admin)  //========================
-@auth_bp.route('/collaborator', methods=['GET'], strict_slashes=False)
-@require_supabase_auth
-def get_collaborators(user_id): 
-    """
-    Rota protegida onde o Admin pode listar os colaboradores do sistema.
-    """
-    # 1. Verifica se quem está fazendo a requisição é realmente um Admin
-    admin_user = User.query.filter_by(id=user_id).first()
-    
-    if not admin_user or admin_user.role != 'admin':
-        return jsonify({"message": "Acesso negado. Apenas administradores podem ver a lista."}), 403
-
-    # 2. Busca todos os usuários com o cargo de 'collaborator' no banco local
-    collaborators = User.query.filter_by(role='collaborator').all()
-    
-    # 3. Retorna a lista formatada para o frontend
-    return jsonify([{
-        'id': c.id,
-        'email': c.email,
-        'name': c.name,
-        'document': c.document
-    } for c in collaborators]), 200
+@auth_bp.route('/logout', methods=['POST'])
+@jwt_required()
+def logout():
+    return jsonify({"message": "Successfully logged out"}), 200

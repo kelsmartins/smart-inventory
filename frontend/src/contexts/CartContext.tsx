@@ -1,10 +1,10 @@
 'use client'
 import { createContext, useState, useEffect } from "react";
-import { ItemCartData } from '@/types/ItemCartType';
+import { ItemCartType } from '@/types/ItemCartType';
 import { ProductType } from "@/types/ProductType";
 
 interface CartContextInterface {
-    cart: ItemCartData[];
+    cart: ItemCartType[];
     addToCart: (item: ProductType) => void;
     deleteFromCart: (id: number) => void;
     increaseQuantity: (id: number) => void;
@@ -16,7 +16,7 @@ export const CartContext = createContext({} as CartContextInterface);
 
 export function CartContextProvider({ children }: { children: React.ReactNode }) {
 
-    const [cart, setCart] = useState<ItemCartData[]>([]);
+    const [cart, setCart] = useState<ItemCartType[]>([]);
     const [totalCart, setTotalCart] = useState(0);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ export function CartContextProvider({ children }: { children: React.ReactNode })
                 );
             } else {
                 // 3. Se não existe, adiciona como um item novo
-                const newItem: ItemCartData = {
+                const newItem: ItemCartType = {
                     id: product.id,
                     name: product.name,
                     quantity: 1,

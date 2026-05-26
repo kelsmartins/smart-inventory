@@ -8,6 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ProductsContextProvider } from '@/contexts/ProductsContext';
 import { RouteGuard } from '@/components/RouteGuard'; // <-- Importe o Guardião aqui!
 import { CartContextProvider } from '@/contexts/CartContext';
+import { SalesContextProvider } from '@/contexts/SalesContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -31,6 +32,7 @@ export default function RootLayout({
           <RouteGuard>
            
             <ProductsContextProvider>
+              <SalesContextProvider>
               <CartContextProvider>
                 <Navbar />
              
@@ -41,7 +43,7 @@ export default function RootLayout({
               <Toaster richColors position="top-right" />
 
                </CartContextProvider>
-               
+              </SalesContextProvider>
             </ProductsContextProvider>
           </RouteGuard>
         </AuthProvider>

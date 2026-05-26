@@ -2,18 +2,18 @@ from flask import Blueprint, jsonify
 from app import db
 from app.models.product import Product
 from datetime import datetime, timedelta
-
-from app.auth_middleware import require_supabase_auth
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 inventory_bp = Blueprint('inventory', __name__)
 
 @inventory_bp.route('/expiring', methods=['GET'])
-@require_supabase_auth
-def get_expiring_products(user_id):
+@jwt_required()
+def get_expiring_products():
     """
     Identifica produtos que vencerão nos próximos 30 dias.
     Lógica: Filtra produtos onde a data de validade está entre 'hoje' e 'hoje + 30 dias'.
     """
+    user_id = get_jwt_identity()
     today = datetime.utcnow().date()
     thirty_days_later = today + timedelta(days=30)
     
@@ -35,12 +35,13 @@ def get_expiring_products(user_id):
     return jsonify(result), 200
 
 @inventory_bp.route('/summary', methods=['GET'])
-@require_supabase_auth
-def get_inventory_summary(user_id):
+@jwt_required()
+def get_inventory_summary():
     """
     Gera um resumo quantitativo do inventário do usuário.
     Retorno: Quantidade de produtos únicos e total de itens em estoque.
     """
+    user_id = get_jwt_identity()
     total_products = Product.query.filter_by(user_id=user_id).count()
     total_items = db.session.query(db.func.sum(Product.quantity)).filter_by(user_id=user_id).scalar() or 0
     

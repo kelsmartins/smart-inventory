@@ -3,19 +3,18 @@ from app import db
 from app.models.sale import Sale
 from app.models.product import Product
 from sqlalchemy import func
-
-from app.auth_middleware import require_supabase_auth
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/stats', methods=['GET'])
-@require_supabase_auth
-def get_stats(user_id):
+@jwt_required()
+def get_stats():
     """
     Calcula métricas globais do inventário e financeiro do usuário.
     Utiliza funções de agregação do SQLAlchemy para performance.
     """
-    
+    user_id = get_jwt_identity()
     # Receita Total: Soma de todos os totais da tabela Sale
     total_revenue = db.session.query(func.sum(Sale.total)).filter_by(user_id=user_id).scalar() or 0.0
     

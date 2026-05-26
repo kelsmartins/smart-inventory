@@ -3,6 +3,7 @@ import requests
 from flask import Blueprint, jsonify, request
 from app import db
 from datetime import datetime
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from app.models.product import Product
 from app.models.batch import Batch
@@ -11,22 +12,24 @@ products_bp = Blueprint('products', __name__)
 
 # ====================//  GET PRODUCTS  //========================
 @products_bp.route('', methods=['GET'])
+@jwt_required()
 def get_products():
-    
-    products = Product.query.all()
+    user_id = get_jwt_identity()
+    products = Product.query.filter_by(user_id=user_id).all()
 
     result = [p.to_dict() for p in products]
     return jsonify(result), 200
 
 
-
 # ====================//  POST PRODUCT  //========================
 @products_bp.route('', methods=['POST'])
+@jwt_required()
 def create_product():
     """
     Cria um novo produto e automaticamente gera o primeiro lote associado.
     Requisito: JSON com 'name' e 'expiry_date' (ou 'expiryDate').
     """
+    user_id = get_jwt_identity()
     data = request.get_json()
     
     # Aceita tanto camelCase (React) quanto snake_case
@@ -50,7 +53,8 @@ def create_product():
         expiry_date=expiry_date,
         price=data.get('price', 0.0),
         quantity=data.get('quantity', 1.0),
-        batch_code=data.get('batch_code')
+        batch_code=data.get('batch_code'),
+        user_id=user_id
     )
     
     db.session.add(product)

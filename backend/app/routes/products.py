@@ -16,7 +16,7 @@ products_bp = Blueprint('products', __name__)
 def get_products():
     user_id = get_jwt_identity()
     # Retorna apenas os produtos do usuário logado
-    products = Product.query.filter_by(user_id=user_id).all()
+    products = Product.query.filter_by(user_id=user_id, available=True).all()
 
     result = [p.to_dict() for p in products]
     return jsonify(result), 200
@@ -48,7 +48,8 @@ def create_product():
         price=data.get('price', 0.0),
         quantity=data.get('quantity', 1.0),
         batch_code=data.get('batch_code'),
-        user_id=user_id  # <--- Salva o produto para este usuário!
+        user_id=user_id,  # <--- Salva o produto para este usuário!
+        available=True  # <--- Inicialmente, o produto está disponível
     )
     
     db.session.add(product)
@@ -56,7 +57,6 @@ def create_product():
     
     batch = Batch(
         code=data.get('batch_code') or f"BATCH-{product.id}",
-        manufacturing_date=datetime.utcnow().date(),
         expiry_date=expiry_date,
         quantity=product.quantity,
         initial_quantity=product.quantity,

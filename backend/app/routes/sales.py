@@ -8,7 +8,9 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 sales_bp = Blueprint('sales', __name__)
 
-@sales_bp.route('/', methods=['GET'])
+
+#============// GET VENDAS // =============
+@sales_bp.route('', methods=['GET'])
 @jwt_required() 
 def get_sales():
     user_id = get_jwt_identity()
@@ -34,7 +36,9 @@ def get_sales():
     
     return jsonify(result), 200
 
-@sales_bp.route('/', methods=['POST'])
+
+#============// NOVA VENDA // =============
+@sales_bp.route('', methods=['POST'])
 @jwt_required()
 def create_sale():
     user_id = get_jwt_identity()
@@ -68,6 +72,11 @@ def create_sale():
                 return jsonify({"message": f"No batches available for product {product.name}"}), 400
             
             product.quantity -= quantity
+
+            # Se o estoque zerou (ou ficou negativo por algum erro decimal), desativa o produto
+            if product.quantity <= 0:
+                product.available = False
+
             unit_price = product.price
             total += unit_price * quantity
             

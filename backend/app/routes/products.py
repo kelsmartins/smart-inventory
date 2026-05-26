@@ -105,6 +105,27 @@ def put_product_on_sale(expiring_id):
     return jsonify({"message": "Produto promovido com sucesso!"}), 200
 
 
+# ====================//  DELETE PRODUCT  //========================
+@products_bp.route('/<int:product_id>', methods=['DELETE'])
+@jwt_required()
+def delete_product(product_id):
+    user_id = get_jwt_identity()
+    
+    # Busca o produto garantindo que ele existe e pertence a este usuário
+    product = Product.query.filter_by(id=product_id, user_id=user_id).first()
+    
+    if not product:
+        return jsonify({"message": "Produto não encontrado ou acesso negado"}), 404
+        
+    # SOFT DELETE: Não apaga do banco, apenas torna indisponivel, oq o esconde da tela
+    product.available = False
+    
+    # 3. Salva a alteração
+    db.session.commit()
+    
+    return jsonify({"message": "Produto removido com sucesso!"}), 200
+
+
 # ====================//  BUSCAR CÓDIGO DE BARRAS (BLUESOFT)  //========================
 @products_bp.route('/barcode/<barcode>', methods=['GET'])
 @jwt_required()
@@ -133,3 +154,4 @@ def buscar_produto(barcode):
 
     except Exception as e:
         return jsonify({"message": f"Falha na comunicação: {str(e)}"}), 500
+    

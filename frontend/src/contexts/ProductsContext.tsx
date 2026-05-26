@@ -142,19 +142,15 @@ export const ProductsContextProvider = ({ children }: { children: React.ReactNod
     }
 
     async function deleteProduct(id: number) {
-        try {
-            await axios_api.delete(`/products/${id}`);
-            
-            // Filtro direto, sem splits!
-            setProducts(currentProducts => currentProducts.filter(product => product.id !== id));
-            
-            toast.success('Produto excluído com sucesso!');
-        } catch (error: unknown) {
-            console.error('Erro ao deletar produto:', error);
-            const axiosError = error as { response?: { data?: { msg?: string } } };
-            toast.error(axiosError.response?.data?.msg || 'Erro ao excluir produto');
-        }
+    try {
+        await axios_api.delete(`/products/${id}`);
+        
+        setProducts(prevProducts => prevProducts.filter(p => p.id !== id));
+
+    } catch (error) {
+        console.error("Erro ao deletar produto:", error);
     }
+}
 
     async function getProductToFillForm(barCode: string): Promise<BlueSoftResponse> {
         try {

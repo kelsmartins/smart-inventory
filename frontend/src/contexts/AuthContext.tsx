@@ -43,7 +43,7 @@ type RegisterData = {
 export const AuthContext = createContext({} as AuthContextType);
 
 // ==================================================
-// PROVIDER
+// PROVIDER: Gerencia o estado de autenticação global do App
 // ==================================================
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // ==========================================
-  // BUSCA O PERFIL DO BANCO DE DADOS (FLASK)
+  // BUSCA O PERFIL: Verifica se o token no localStorage é válido
   // ==========================================
   const fetchUserProfile = async (): Promise<User | null> => {
     try {
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // ==========================================
-  // CARREGA A SESSÃO AO INICIAR O APP
+  // INICIALIZAÇÃO: Executa ao abrir o app para evitar que o usuário seja deslogado ao dar F5
   // ==========================================
   useEffect(() => {
     const initAuth = async () => {
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ==========================================
-  // LOGIN VIA API FLASK
+  // LOGIN: Autentica e salva o token JWT no navegador
   // ==========================================
   async function login(email: string, password: string): Promise<User | null> {
     try {
@@ -108,19 +108,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   // ==========================================
-  // REGISTRO DE NOVO DONO (Admin Automático)
+  // REGISTRO: Cria conta de administrador (Dono)
   // ==========================================
   async function register(userData: RegisterData): Promise<User | null> {
     try {
-      // Chama a API do Flask, que vai criar no Supabase e no banco de dados local
       await axios_api.post('/auth/register', userData);
       
       toast.success('Conta criada com sucesso! Entrando...');
 
-      // Faz o login automaticamente com os dados recém-criados para iniciar a sessão
+      // Faz o login automático para já iniciar a sessão do novo admin
       const loggedUser = await login(userData.email, userData.password);
       return loggedUser;
-
+    
     } catch (error: any) {
       console.error('Erro no registro:', error);
       toast.error(error.response?.data?.message || 'Erro ao criar conta');

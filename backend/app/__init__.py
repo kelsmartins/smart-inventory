@@ -7,19 +7,25 @@ from app.config import Config
 from app.extensions.db import db
 
 # Inicializa as outras extensões
+# Migrate: Gerencia migrações do banco de dados
 migrate = Migrate()
+# JWTManager: Gerencia a criação e validação de tokens de acesso (Login)
 jwt = JWTManager()
 
 def create_app():
+    """
+    Fábrica de aplicação Flask. Configura extensões, 
+    modelos e registra as rotas (Blueprints).
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Vincula extensões
+    # Vincula extensões ao app
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     
-    # CORS Agressivo: Libera o React
+    # CORS Agressivo: Permite que o frontend (React/Next.js) faça requisições para a API
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Importa modelos para o SQLAlchemy reconhecer as tabelas

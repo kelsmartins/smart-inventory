@@ -6,6 +6,8 @@ class Product(db.Model):
     
     # Identificador único do produto
     id = db.Column(db.Integer, primary_key=True)
+
+    available = db.Column(db.Boolean, default=True, nullable=False)
     
     # Nome descritivo do item (obrigatório)
     name = db.Column(db.String(200), nullable=False)
@@ -66,5 +68,6 @@ class Product(db.Model):
             'price': self.price,
             'quantity': self.quantity,
             'batch_code': self.batch_code,
-            'status': self.status  # já inclui o status calculado
+            'status': self.status,  # já inclui o status calculado
+            'available': self.available
         }

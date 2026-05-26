@@ -1,5 +1,5 @@
 from app.extensions.db import db
-from datetime import datetime
+from datetime import datetime 
 
 class Sale(db.Model):
     """
@@ -11,7 +11,7 @@ class Sale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
     # Valor total da venda (Soma de todos os itens)
-    total = db.Column(db.Float, nullable=False, default=0.0)
+    total_price = db.Column(db.Float, nullable=False, default=0.0)
     
     # Data e hora da ocorrência da venda
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -21,7 +21,7 @@ class Sale(db.Model):
     user = db.relationship('User', backref='sales')
 
     def __repr__(self):
-        return f"<Sale {self.id} - Total: {self.total}>"
+        return f"<Sale {self.id} - Total: {self.total_price}>"
 
 class SaleItem(db.Model):
     """
@@ -32,6 +32,9 @@ class SaleItem(db.Model):
 
     # Identificador único do item
     id = db.Column(db.Integer, primary_key=True)
+
+    # Nome do produto no momento da venda (evita erros se o nome do produto mudar depois)
+    name = db.Column(db.String(255), nullable=False)
     
     # Quantidade vendida deste item
     quantity = db.Column(db.Float, nullable=False)
@@ -52,4 +55,4 @@ class SaleItem(db.Model):
     batch = db.relationship('Batch', backref='sale_items')
 
     def __repr__(self):
-        return f"<SaleItem {self.product_id} x{self.quantity}>"
+        return f"<SaleItem {self.name} x{self.quantity}>"

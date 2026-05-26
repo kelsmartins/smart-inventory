@@ -95,9 +95,9 @@ export default function InventoryPage(){
                             
                             {/* Ações */}
                             <div className="w-[10%] flex justify-end items-center gap-1 sm:gap-3">
-                                <button className="p-1.5 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                {/* <button className="p-1.5 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
                                     <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
-                                </button>
+                                </button> */}
                                 <button 
                                     className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                                     onClick={() => deleteProduct(product.id)}

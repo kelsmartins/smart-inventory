@@ -25,7 +25,7 @@ def create_app():
     # Adicione a URL exata do seu Vercel abaixo (sem a barra / no final)
     frontend_urls = [
         "http://localhost:3000",
-        "https://seu-projeto-smart-inventory.vercel.app" 
+        "https://smart-inventory-sand.vercel.app"
     ]
     
     # supports_credentials=True é obrigatório para o navegador aceitar/enviar o cookie

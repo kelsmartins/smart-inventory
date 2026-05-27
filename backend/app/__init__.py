@@ -29,7 +29,15 @@ def create_app():
     ]
     
     # supports_credentials=True é obrigatório para o navegador aceitar/enviar o cookie
-    CORS(app, supports_credentials=True, resources={r"/*": {"origins": frontend_urls}})
+    CORS(app, 
+         supports_credentials=True, 
+         resources={
+             r"/*": {
+                 "origins": frontend_urls,
+                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                 "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
+             }
+         })
 
     # Importa modelos para o SQLAlchemy reconhecer as tabelas
     from app.models.product import Product

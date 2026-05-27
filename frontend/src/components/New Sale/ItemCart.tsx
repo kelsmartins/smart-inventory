@@ -1,8 +1,8 @@
 import { Package, Trash, Minus, Plus } from "lucide-react";
-import { ItemCartData } from "@/types/ItemCartType";
+import { ItemCartType } from "@/types/ItemCartType";
 
 interface ItemCartProps {
-    item: ItemCartData;
+    item: ItemCartType;
     deleteFromCart: (id: number) => void;
     increaseQuantity: (id: number) => void;
     decreaseQuantity: (id: number) => void;

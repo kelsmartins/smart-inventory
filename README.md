@@ -1,7 +1,7 @@
 <div align="center">  
   
 <!-- Substitua pelo caminho da sua logo SVG -->  
-<img src="./public/logo.svg" alt="Smart Inventory Logo" width="200"/>  
+<img src="./public/logo_smart_inventory.png" alt="Smart Inventory Logo" width="200"/>  
   
 # Smart Inventory  
   

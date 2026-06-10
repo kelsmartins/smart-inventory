@@ -87,7 +87,7 @@ A perda de produtos por vencimento representa cerca de **24% das perdas no varej
   
 ## Links  
   
-- **Demo ao vivo:** [https://smart-inventory-p5oe.vercel.app/](https://smart-inventory-frontend-teal.vercel.app/welcome)
+- **Demo ao vivo:** [https://smart-inventory-frontend-teal.vercel.app/](https://smart-inventory-frontend-teal.vercel.app/)
 - **Repositório:** [https://github.com/kelsmartins/smart-inventory](https://github.com/kelsmartins/smart-inventory)  
   
 ---  

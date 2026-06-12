@@ -1,7 +1,8 @@
 'use client';
 
-import { Package, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 
 export function FakeNavBar() {
@@ -11,7 +12,7 @@ export function FakeNavBar() {
                 
                 {/* Lado Esquerdo: Logo */}
                 <Link href="/" className="flex items-center gap-2 text-xl font-bold text-[#6b9dff] hover:opacity-80 transition-opacity">
-                    <Package className="h-6 w-6" />
+                    <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
                     <span>Smart Inventory</span>
                 </Link>
 
@@ -33,12 +34,7 @@ export function FakeNavBar() {
                 <div className="flex items-center gap-6">
                 
                         <div className="hidden md:flex items-center gap-6">
-                            <Link href="/login" className="text-sm font-medium text-white/80 hover:text-[#6b9dff] transition-colors">
-                                Entrar
-                            </Link>
-                            <Link href="/cadastro" className="text-sm font-medium text-white/80 hover:text-[#6b9dff] transition-colors">
-                                Criar Conta
-                            </Link>
+                            
                         </div>
                     
                         <button className="md:hidden p-2 text-white/70 hover:bg-white/10 rounded-lg transition-colors -mr-2">

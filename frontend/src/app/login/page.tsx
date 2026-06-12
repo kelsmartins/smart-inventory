@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthContext } from "@/hooks/useAuthContext";
 import { Package } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const { login } = useAuthContext();
@@ -48,7 +49,7 @@ export default function LoginPage() {
           
           <div className="relative z-10 flex flex-col items-center text-center">
             <div className="bg-white/10 p-3 rounded-xl mb-4 backdrop-blur-sm border border-white/20">
-              <Package className="h-8 w-8 text-white" />
+             <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">Smart Inventory</h2>
             <p className="mt-2 text-sm text-slate-300 font-medium leading-relaxed">
@@ -60,7 +61,7 @@ export default function LoginPage() {
         <div className="w-full md:w-[60%] p-8 sm:p-12">
           <div className="flex flex-col items-center mb-6 md:hidden">
             <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl mb-3">
-              <Package className="h-6 w-6" />
+              <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
             </div>
           </div>
 

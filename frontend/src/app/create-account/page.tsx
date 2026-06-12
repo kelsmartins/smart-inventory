@@ -1,7 +1,7 @@
 'use client';
 
 import { UserForm } from "@/components/Forms/userform";
-import { Package } from "lucide-react";
+import Image from "next/image";
 
 export default function CreateAccountPage() {
   return (
@@ -19,7 +19,7 @@ export default function CreateAccountPage() {
           
           <div className="relative z-10 flex flex-col items-center text-center">
             <div className="bg-white/10 p-3 rounded-xl mb-4 backdrop-blur-sm border border-white/20">
-              <Package className="h-8 w-8 text-white" />
+              <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
             </div>
             <h2 className="text-2xl font-bold text-white tracking-tight">Crie sua Conta</h2>
             <p className="mt-2 text-sm text-slate-300 font-medium leading-relaxed">

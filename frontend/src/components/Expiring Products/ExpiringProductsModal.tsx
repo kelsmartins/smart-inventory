@@ -33,9 +33,6 @@ export function ModalHeader({ onClick }: modalHeaderProps) {
           <div>
             <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
               Revisão de Produtos a Vencer
-              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {}
-              </span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 whitespace-normal">
               Analise os produtos próximos do vencimento e decida se deseja criar uma promoção ativa ou ignorar o alerta temporariamente.

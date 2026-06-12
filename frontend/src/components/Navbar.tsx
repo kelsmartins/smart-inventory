@@ -42,7 +42,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-1 sm:gap-2 text-base md:text-xl font-bold text-[#6b9dff]">
           <Image src="/logo_smart_inventory.png" alt='logo' width={50} height={50} />
           <div className={`${right.className} text-blue-500 text-base leading-none flex flex-col items-start justify-start h-full`}>
-               <span className='text-blue-400'>Smart</span>
+               <span>Smart</span>
                <span>Inventory</span>
           </div>
         </Link>

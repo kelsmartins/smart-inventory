@@ -102,7 +102,7 @@ export default function WelcomePage() {
         <section className="bg-[#222222] text-white py-20 px-4 scroll-mt-[60px]">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
             {/* Card Sustentabilidade */}
-            <div className="flex flex-col items-start bg-[#555555] border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
+            <div className="flex flex-col items-start bg-[#333333] border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
               <div className="p-3 bg-gray-500/30 rounded-xl mb-6">
                 <Globe className="h-8 w-8 text-gray-200" />
               </div>
@@ -113,7 +113,7 @@ export default function WelcomePage() {
             </div>
 
             {/* Card Curva de Aprendizado */}
-            <div className="flex flex-col items-start bg-[#555555] border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
+            <div className="flex flex-col items-start bg-[#333333] border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
               <div className="p-3 bg-gray-500/30 rounded-xl mb-6">
                 <Clock className="h-8 w-8 text-gray-200" />
               </div>

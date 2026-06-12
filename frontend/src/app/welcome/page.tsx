@@ -7,6 +7,12 @@ import {
   Cpu, XCircle, CheckCircle, PieChart
 } from 'lucide-react';
 import { FakeNavBar } from '@/components/FakeNavBar';
+import { Rammetto_One } from 'next/font/google';
+
+const right = Rammetto_One({
+  subsets: ['latin'],
+  weight: ['400'],
+});
 
 const features = [
   { icon: Ban, title: 'Bloqueio de Venda Vencida', desc: 'Segurança automatizada que impede a venda de produtos que já passaram da data de validade.' },
@@ -32,7 +38,7 @@ export default function WelcomePage() {
             Gestão Preventiva de Estoque para o Pequeno Varejo
           </div>
 
-          <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
+          <h1 className={`${right.className} text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight`}>
             Smart <span className="text-blue-500">Inventory</span>
           </h1>
 
@@ -95,27 +101,31 @@ export default function WelcomePage() {
         {/* ODS 12 E USABILIDADE */}
         <section className="bg-[#222222] text-white py-20 px-4 scroll-mt-[60px]">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-            <div className="flex flex-col items-start bg-slate-800 border border-slate-600 p-8 md:p-10 rounded-2xl shadow-lg">
-              <div className="p-3 bg-emerald-500/20 rounded-xl mb-6">
-                <Globe className="h-8 w-8 text-emerald-400" />
+            {/* Card Sustentabilidade */}
+            <div className="flex flex-col items-start bg-gray-800 border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gray-500/30 rounded-xl mb-6">
+                <Globe className="h-8 w-8 text-gray-200" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-emerald-400">Sustentabilidade (ODS 12)</h3>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Alinhado à Meta 12.3 dos Objetivos de Desenvolvimento Sustentável da ONU, o sistema possui relatórios de ações preventivas, garantindo o consumo responsável e atuando diretamente na <strong className="text-emerald-400 font-semibold">redução do desperdício de alimentos</strong> no comércio local.
+              <h3 className="text-2xl font-bold mb-4 text-gray-100">Sustentabilidade (ODS 12)</h3>
+              <p className="text-gray-300 leading-relaxed text-lg">
+                Alinhado à Meta 12.3 dos Objetivos de Desenvolvimento Sustentável da ONU, o sistema possui relatórios de ações preventivas, garantindo o consumo responsável e atuando diretamente na <strong className="text-gray-100 font-semibold">redução do desperdício de alimentos</strong> no comércio local.
               </p>
             </div>
 
-            <div className="flex flex-col items-start bg-slate-800 border border-slate-600 p-8 md:p-10 rounded-2xl shadow-lg">
-              <div className="p-3 bg-blue-500/20 rounded-xl mb-6">
-                <Clock className="h-8 w-8 text-blue-400" />
+            {/* Card Curva de Aprendizado */}
+            <div className="flex flex-col items-start bg-gray-800 border border-gray-600 p-8 md:p-10 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gray-500/30 rounded-xl mb-6">
+                <Clock className="h-8 w-8 text-gray-200" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-blue-400">Curva de Aprendizado Zero</h3>
-              <p className="text-white/80 leading-relaxed text-lg">
-                Esqueça os treinamentos complexos exigidos pelas grandes plataformas. Nosso design minimalista e focado no usuário garante que novos colaboradores estejam aptos a utilizar o sistema plenamente em <strong className="text-blue-400 font-semibold">menos de 15 minutos</strong>.
+              <h3 className="text-2xl font-bold mb-4 text-gray-100">Curva de Aprendizado Zero</h3>
+              <p className="text-gray-300 leading-relaxed text-lg">
+                Esqueça os treinamentos complexos exigidos pelas grandes plataformas. Nosso design minimalista e focado no usuário garante que novos colaboradores estejam aptos a utilizar o sistema plenamente em <strong className="text-gray-100 font-semibold">menos de 15 minutos</strong>.
               </p>
             </div>
           </div>
         </section>
+
+
 
 
         {/* DASHBOARD E COMPARATIVO */}

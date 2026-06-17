@@ -7,7 +7,7 @@ import { Rows4, Package2, Users, ReceiptText, Menu, X } from "lucide-react";
 const linksInventoryPage = [
   { name: "Produtos", href: "/inventory",  icon: <Package2 className="size-4"/>},
   { name: "Histórico de Vendas", href: "/inventory/sales", icon: <ReceiptText className="size-4 "/> },
-  { name: "Relatórios", href: "/inventory/reports", icon: <Rows4 className="size-4"/> },
+  // { name: "Relatórios", href: "/inventory/reports", icon: <Rows4 className="size-4"/> },
   { name: "Colaboradores", href: "/inventory/collaborators", icon: <Users className="size-4" /> }
 ];
 
